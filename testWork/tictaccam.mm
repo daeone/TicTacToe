@@ -67,13 +67,18 @@ function proj_getCenter(img1,img2)
 
 	o1 = to_fimg(obj1img);
 
-	sz = sum_fimg(o1);
+	sz = sum_fimg(o1); 
 
 	c_x = sum_fimg(o1*x_img(o1->vsize,o1->hsize))/sz;
 
 	c_y = sum_fimg(o1*y_img(o1->vsize,o1->hsize))/sz;
 
-	printf("x:%d y:%d\n",c_x,c_y);
+	printf("x:%f y:%f\n",c_x,c_y);
+	xx = to_int(c_x);
+	yy = to_int(c_y);
+	obj1img[yy,xx] = 0;
+	gshow(obj1img,:rescale=t);
+	
 
 	/* Return array with x, y of center of mass */
 
@@ -91,9 +96,17 @@ function proj_prtList(list){
 /*prints an image variable to a file*/
 function proj_writeImage(img,name){
 	ppm = ".ppm";
-	location = "/eecs/home/hydramin/Documents/4421/Project/pics/";
+	/*location = "/eecs/home/hydramin/Documents/4421/Project//testWork/exper/";*/
+	location = "/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/exper/";
 	file = str_concat(location,name,ppm);
 	write_img(img,file);
 };
 
 /*Reads an image from location provided*/
+/*read_img("absolute path");*/
+
+/*gets the robot out of the way of the camera, vertically upward*/
+function proj_readyPos(){
+    rob_move_abs(0,90,0,0,0);
+    servo_open(30);    
+};

@@ -67,13 +67,18 @@ function proj_getCenter(img1,img2)
 
 	o1 = to_fimg(obj1img);
 
-	sz = sum_fimg(o1);
+	sz = sum_fimg(o1); 
 
 	c_x = sum_fimg(o1*x_img(o1->vsize,o1->hsize))/sz;
 
 	c_y = sum_fimg(o1*y_img(o1->vsize,o1->hsize))/sz;
 
-	printf("x:%d y:%d\n",c_x,c_y);
+	printf("x:%f y:%f\n",c_x,c_y);
+	xx = to_int(c_x);
+	yy = to_int(c_y);
+	obj1img[yy,xx] = 0;
+	gshow(obj1img,:rescale=t);
+	
 
 	/* Return array with x, y of center of mass */
 
