@@ -118,8 +118,82 @@ function proj_readyPos(){
 function proj_prtCenters(xm,ym){
     for(i=1;i<=3;i++){
         for(j=1;j<=3;j++){
-            printf("(%f,%f) ",xm[i,j],ym[i,j]);
+            printf("(%.2f,%.2f) ",xm[i,j],ym[i,j]);
         };
         printf("\n");
     };
 };
+
+/*input the refX,refY matrices and a point, calculate the distance from each point*/
+/*this calculates the pixle distance*/
+function proj_getDistance(xm,ym,pt){
+    
+    /*dx is refX - ptx*/
+    dx = xm - inner_fillMat(pt[1]);
+    dy = ym - inner_fillMat(pt[2]);
+    dxsq = inner_squareMat(dx);
+    dysq = inner_squareMat(dy);
+    dxysum = dxsq + dysq;
+    /*dxyfinal contains distance of the point pt from each of the reference center of gravities*/
+    dxyfinal = inner_sqrtMat(dxysum);
+    inner_prtMat(dxyfinal);
+    dxyfinal;
+};
+
+/*given a distance matrix 3x3, outputs the entry index as vector (r,c) with the min value*/
+function proj_getMinIndex(mat){
+    index = mk_ivec(1..2,[0,0]);
+    min = mat[1,1];
+    for(i = 1;i<=3;i++){
+        for(j = 1;j<=3;j++){
+           if(mat[i,j] < min){
+                min = mat[i,j];
+                index[1] = i;
+                index[2] = j;
+           }; 
+        };
+    };
+    index;
+};
+
+
+/*square each values of a matrix*/
+function inner_squareMat(mat){
+    mat1 = mk_fmat(1..3,1..3);
+    for(i = 1;i<=3;i++){
+        for(j = 1;j<=3;j++){
+           mat1[i,j] = mat[i,j]^2;
+        };
+    };            
+    /*inner_prtMat(mat1);*/
+    mat1;
+};
+
+/*square roots each entry of a 3x3 matrix*/
+function inner_sqrtMat(mat){
+    mat1 = mk_fmat(1..3,1..3);
+    for(i = 1;i<=3;i++){
+        for(j = 1;j<=3;j++){
+           mat1[i,j] = sqrt(mat[i,j]);           
+        };
+    };
+    /*inner_prtMat(mat1);*/
+    mat1;
+};
+
+function inner_prtMat(mat){
+    for(i=1;i<=3;i++){
+        for(j=1;j<=3;j++){
+            printf("%.2f ",mat[i,j]);
+        };
+        printf("\n");
+    };
+    0;
+};
+
+/*generates a 3x3 square matrix filled with the input param*/
+function inner_fillMat(x){
+    mat = mk_fmat(1..3,1..3,[[x,x,x],[x,x,x],[x,x,x]]);
+};
+
+
