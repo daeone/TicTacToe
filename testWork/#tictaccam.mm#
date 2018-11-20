@@ -123,3 +123,11 @@ function proj_prtCenters(xm,ym){
         printf("\n");
     };
 };
+
+/*input the refX,refY matrices and a point, calculate the distance from each point*/
+function proj_getDistance(refX,refY,pt){
+    
+};
+
+
+
