@@ -123,3 +123,15 @@ function proj_prtCenters(xm,ym){
         printf("\n");
     };
 };
+function minDis(x, y, G)
+{
+    c = mk_fvec(9);
+    cx=(G[1..9,1] - x);
+    cy=(G[1..9,2] - y);
+    for(i=1;i< 10; i++){
+        a = cx[i]^2;
+        b = cy[i]^2;
+        c[i] = sqrt(a+b);
+    };
+    gridPosition = minind_fvec(c);
+};
