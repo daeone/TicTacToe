@@ -196,4 +196,18 @@ function inner_fillMat(x){
     mat = mk_fmat(1..3,1..3,[[x,x,x],[x,x,x],[x,x,x]]);
 };
 
-
+/*G is a 9x2 matrix that holds ref values, x,y are the newly identified real world points*/
+/*x,y are obtained from the matrix calibration*/
+/*it spits out the index (1 .. 9) of where the min value was found*/
+function minDis(x, y, G)
+{
+    c = mk_fvec(9);
+    cx=(G[1..9,1] - x);
+    cy=(G[1..9,2] - y);
+    for(i=1;i< 10; i++){
+        a = cx[i]^2;
+        b = cy[i]^2;
+        c[i] = sqrt(a+b);
+    };
+    gridPosition = minind_fvec(c);
+};
