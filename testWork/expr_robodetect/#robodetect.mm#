@@ -9,7 +9,6 @@
 back = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/expr_robodetect/back.ppm");
 m1 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/expr_robodetect/1m.ppm");
 m2 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/expr_robodetect/2m.ppm");
-/*--Break--*/
 m3 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/expr_robodetect/3m.ppm");
 m4 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/expr_robodetect/4m.ppm");
 m5 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/expr_robodetect/5m.ppm");

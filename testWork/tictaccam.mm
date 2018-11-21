@@ -196,11 +196,13 @@ function inner_fillMat(x){
     mat = mk_fmat(1..3,1..3,[[x,x,x],[x,x,x],[x,x,x]]);
 };
 
-/*G is a 9x2 matrix that holds ref values, x,y are the newly identified real world points*/
+/*G is a 9x2 matrix that holds ref values, vector <x,y> are the newly identified real world points*/
 /*x,y are obtained from the matrix calibration*/
 /*it spits out the index (1 .. 9) of where the min value was found*/
-function minDis(x, y, G)
+function proj_minDistIndex(pt, G)
 {
+    x = pt[1];
+    y = pt[2];
     c = mk_fvec(9);
     cx=(G[1..9,1] - x);
     cy=(G[1..9,2] - y);
