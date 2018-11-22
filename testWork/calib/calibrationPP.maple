@@ -1,0 +1,124 @@
+with(LinearAlgebra):
+with(CodeGeneration):
+
+#P is the 3x4 projection matrix. If you want to map from plane to plane
+#use a 3x3 matrix.
+
+PP:=array(1..3,1..3,[[p1,p2,p3],[p4,p5,p6],[p7,p8,p9]]);
+
+#Input the values of the sample points into the array [X,Y,Z,u,v]
+#X,Y,Z measured in cm and 
+#u,v measured in pixle index
+
+Sp := Array([
+			[11,4.5,300.52,225.57],
+			[20,4.5,435.5,228.8],
+			[20,-4.5,450.45,332.48],
+			[11,-4.5,285.57,338.41],
+			[15.5,0,366.57,277.52],
+			[15.5,4.5,365.47,227.45]						
+		]);
+#Sp := Array([
+#			[2.2,9,97,432],
+#			[17.5,3.5,214,90],
+#			[11.5,-8.5,493,214],
+#			[9.2,-0.9,313,273],
+#			[14.6,11.5,33,155],
+#			#[11.8,7,138,219],
+#			[18,-2.9,354,67],
+#			[5,-6.2,438,367]			
+#		]);
+
+
+makeMatrix := proc(arr)		
+		local X, Y, u, v, Xworld, ximg, projPt, eqvec, AAi, AAj;
+		#with(LinearAlgebra):
+		# Xworld is the world coordinates, that is where you told the arm to place
+		# the token
+		X := arr[1];
+		Y := arr[2];		
+		u := arr[3];
+		v := arr[4];
+		
+		
+		Xworld:=Vector(<X,Y,1>);
+		
+		#ximg is the image coordinate, where you detected the token in the image.
+		ximg:=Vector(<u,v,1>);
+		
+		projPt := Multiply(convert(PP,Matrix),Xworld);	
+		
+		eqvec := CrossProduct(ximg,projPt);		
+				
+		# AAi is the 3x12 matrix of coefficients. I use a simple trick to get the
+		# coefficients: I take derivatives with respect to the unknowns.
+
+		AAi:=array(1..3,1..9,[
+		['diff(eqvec[1],PP[1,i])'$i=1..3,
+		'diff(eqvec[1],PP[2,i])'$i=1..3,
+		'diff(eqvec[1],PP[3,i])'$i=1..3],
+		['diff(eqvec[2],PP[1,i])'$i=1..3,
+		'diff(eqvec[2],PP[2,i])'$i=1..3,
+		'diff(eqvec[2],PP[3,i])'$i=1..3],
+		['diff(eqvec[3],PP[1,i])'$i=1..3,
+		'diff(eqvec[3],PP[2,i])'$i=1..3,
+		'diff(eqvec[3],PP[3,i])'$i=1..3]]);
+
+		AAj := convert(AAi,Matrix);
+	end proc;
+			
+
+# ============ loop through the input values and print them out ===============
+printOut := proc(arr, s)
+	description "this proc loops through the generated 3x12 matrices and stacks them together";
+	local stacked;
+	for i from 1 to s do 
+		#first assignment to stacked
+		if i = 1 then
+			stacked := makeMatrix(arr[i]);
+		else
+			#subsequent assignments to stacked
+			stacked := Matrix ([[stacked],[makeMatrix(arr[i])]]);			
+		end if		
+	end do;
+end proc;
+
+# ================== assign the values of PP =========================
+assignPP := proc (Vmat)	
+	local V;
+	V := Row(Vmat,Dimension(Vmat)[1]);
+	#V := Column(Vmat,Dimension(Vmat)[2]);
+
+	<<V[1]|V[2]|V[3]>,<V[4]|V[5]|V[6]>,<V[7]|V[8]|V[9]>>;	
+end proc;
+
+# ================= generate the PP matrix and invert it to go from u,v to X,Y,Z ===================
+size := Dimension(convert(Sp,Matrix))[1];
+AAj := printOut(Sp,size);
+S, Vt := SingularValues(AAj,output = ['S','Vt']):
+S;
+Column(Vt,9);
+PPnew := assignPP(Vt);
+# invert PPnew
+PPinv := MatrixInverse(PPnew);
+KK := <350, 389,1>;
+JJ := Multiply(PPinv,KK);
+#evalf(JJ[1]/JJ[4]);
+LL := < JJ[1]/JJ[3],JJ[2]/JJ[3] >;
+# ====================================
+
+
+
+
+
+# The next statement produces the C code for it. You can edit the result 
+# a bit to fit in a typical MediaMath program (i.e. replace the ][ in the
+# generated code with either , (comma) or +3*i, so that it places the
+# results in the correct place in the matrix.
+
+#C(AAi);
+
+# After that you call SVD, find the smallest singular value and copy the
+#corresponding singular vector into P
+
+

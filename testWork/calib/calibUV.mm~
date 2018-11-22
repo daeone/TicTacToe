@@ -1,0 +1,29 @@
+??"proj_";
+/*--Break--*/
+back = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/calib/back.ppm");
+c1 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/calib/c1.ppm");
+c2 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/calib/c2.ppm");
+c3 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/calib/c3.ppm");
+c4 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/calib/c4.ppm");
+c5 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/calib/c5.ppm");
+c6 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/calib/c6.ppm");
+
+a1 = proj_getCenter(back,c1);
+a2 = proj_getCenter(back,c2);
+a3 = proj_getCenter(back,c3);
+a4 = proj_getCenter(back,c4);
+a5 = proj_getCenter(back,c5);
+a6 = proj_getCenter(back,c6);
+/*PP is pixle to X,Y*/
+PP = mk_fmat(1..3,1..3,[
+[-30.2868262428999380,     -22.8894438846262958,   11174.6947255013656],
+[0.436084093218768731,     34.2766040865701314,     -9490.51862786125092],
+[-0.379489240334821120,    -1.42664897943947189,    134.249727804199807]
+]);
+
+/*P is from X,Y to pixle*/
+P = mk_fmat(1..3,1..3,[
+[-0.0272491766210897872,      -0.0392349276657349214,      -0.505465319910883282],
+[0.0108015028996522617,      0.000532538666508516716 ,     -0.861450009897587576],
+[0.0000377593596309405894,    -0.000105247789924628398,    -0.00313449743705126842]
+]);
