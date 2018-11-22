@@ -1,0 +1,106 @@
+with(LinearAlgebra):
+with(CodeGeneration):
+
+#P is the 3x4 projection matrix. If you want to map from plane to plane
+#use a 3x3 matrix.
+
+PP:=array(1..3,1..4,[[p1,p2,p3,p4],[p5,p6,p7,p8],[p9,p10,p11,p12]]);
+
+#Input the values of the sample points into the array [X,Y,Z,u,v]
+#X,Y,Z measured in cm and 
+#u,v measured in pixle index
+Sp := Array([
+			[10,8,0,200,200],
+			[15,10,0,300,500],
+			[8,10,0,400,350]			
+		]);
+
+
+makeMatrix := proc(arr)		
+		local X, Y, Z, u, v, Xworld, ximg, projPt, eqvec, AAi, AAj;
+		#with(LinearAlgebra):
+		# Xworld is the world coordinates, that is where you told the arm to place
+		# the token
+		X := arr[1];
+		Y := arr[2];
+		Z := arr[3];
+		u := arr[4];
+		v := arr[5];
+		
+		
+		Xworld:=Vector(<X,Y,Z,1>);
+		
+		#ximg is the image coordinate, where you detected the token in the image.
+		ximg:=Vector(<u,v,1>);
+		
+		projPt := Multiply(convert(PP,Matrix),Xworld);	
+		
+		eqvec := CrossProduct(ximg,projPt);		
+				
+		# AAi is the 3x12 matrix of coefficients. I use a simple trick to get the
+		# coefficients: I take derivatives with respect to the unknowns.
+
+		AAi:=array(1..3,1..12,[
+		['diff(eqvec[1],PP[1,i])'$i=1..4,
+		'diff(eqvec[1],PP[2,i])'$i=1..4,
+		'diff(eqvec[1],PP[3,i])'$i=1..4],
+		['diff(eqvec[2],PP[1,i])'$i=1..4,
+		'diff(eqvec[2],PP[2,i])'$i=1..4,
+		'diff(eqvec[2],PP[3,i])'$i=1..4],
+		['diff(eqvec[3],PP[1,i])'$i=1..4,
+		'diff(eqvec[3],PP[2,i])'$i=1..4,
+		'diff(eqvec[3],PP[3,i])'$i=1..4]]);
+
+		AAj := convert(AAi,Matrix);
+	end proc;
+			
+
+# ============ loop through the input values and print them out ===============
+printOut := proc(arr, s)
+	description "this proc loops through the generated 3x12 matrices and stacks them together";
+	local stacked;
+	for i from 1 to s do 
+		#first assignment to stacked
+		if i = 1 then
+			stacked := makeMatrix(arr[i]);
+		else
+			#subsequent assignments to stacked
+			stacked := Matrix ([[stacked],[makeMatrix(arr[i])]]);			
+		end if		
+	end do;
+end proc;
+
+# ================== assign the values of PP =========================
+assignPP := proc (Vmat)	
+	local V;
+	V := Row(Vmat,Dimension(Vmat)[1]);
+	<<V[1]|V[2]|V[3]|V[4]>,<V[5]|V[6]|V[7]|V[8]>,<V[9]|V[10]|V[11]|V[12]>>;	
+end proc;
+
+# ================= generate the PP matrix and invert it to go from u,v to X,Y,Z ===================
+AAj := printOut(Sp,3);
+Vt := SingularValues(AAj,output = 'Vt');
+PPnew := assignPP(Vt);
+# invert PPnew
+PPinv := MatrixInverse(PPnew);
+KK := <200,200,1>;
+JJ := Multiply(PPinv,KK);
+#evalf(JJ[1]/JJ[4]);
+LL := <JJ[1]/JJ[4],JJ[2]/JJ[4],JJ[3]/JJ[4]>;
+# ====================================
+
+
+
+
+
+# The next statement produces the C code for it. You can edit the result 
+# a bit to fit in a typical MediaMath program (i.e. replace the ][ in the
+# generated code with either , (comma) or +3*i, so that it places the
+# results in the correct place in the matrix.
+
+#C(AAi);
+
+# After that you call SVD, find the smallest singular value and copy the
+#corresponding singular vector into P
+
+
