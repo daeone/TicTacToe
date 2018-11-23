@@ -25,6 +25,26 @@ c4 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/cal
 c5 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/calib/c5.ppm");
 c6 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/calib/c6.ppm");
 
+/*--Break--*/
+??"proj_";
+/*--Break--*/
+cam = proj_getCam();
+/*--Break--*/
+back = proj_grabImage(cam);
+/*--Break--*/
+c1 = proj_grabImage(cam);
+/*--Break--*/
+c2  = proj_grabImage(cam);
+/*--Break--*/
+c3  = proj_grabImage(cam);
+/*--Break--*/
+c4  = proj_grabImage(cam);
+/*--Break--*/
+c5  = proj_grabImage(cam);
+/*--Break--*/
+c6  = proj_grabImage(cam);
+/*--Break--*/
+
 a1 = proj_getCenter(back,c1);
 a2 = proj_getCenter(back,c2);
 a3 = proj_getCenter(back,c3);
@@ -32,19 +52,38 @@ a4 = proj_getCenter(back,c4);
 a5 = proj_getCenter(back,c5);
 a6 = proj_getCenter(back,c6);
 
-/*PP is pixle to X,Y*/
-PP = mk_fmat(1..3,1..3,[
-[-30.2868262428999380,     -22.8894438846262958,   11174.6947255013656],
-[0.436084093218768731,     34.2766040865701314,     -9490.51862786125092],
-[-0.379489240334821120,    -1.42664897943947189,    134.249727804199807]
-]);
+/*--Break--*/
+data_points = mk_fmat(1..6,1..4);
+data_points[1,1] = 4.5;
+data_points[1,2] = 11.0;
+data_points[1,3] = a1[1];
+data_points[1,4] = a1[2];
 
-/*P is from X,Y to pixle*/
-P = mk_fmat(1..3,1..3,[
-[-0.0272491766210897872,      -0.0392349276657349214,      -0.505465319910883282],
-[0.0108015028996522617,      0.000532538666508516716 ,     -0.861450009897587576],
-[0.0000377593596309405894,    -0.000105247789924628398,    -0.00313449743705126842]
-]);
+data_points[2,1] = 4.5;
+data_points[2,2] = 20;
+data_points[2,3] = a2[1];
+data_points[2,4] = a2[2];
+
+data_points[3,1] = -4.5;
+data_points[3,2] = 20;
+data_points[3,3] = a3[1];
+data_points[3,4] = a3[2];
+
+data_points[4,1] = -4.5;
+data_points[4,2] = 11;
+data_points[4,3] = a4[1];
+data_points[4,4] = a4[2];
+
+
+data_points[5,1] = 0;
+data_points[5,2] = 15.5;
+data_points[5,3] = a5[1];
+data_points[5,4] = a5[2];
+
+data_points[6,1] = 4.5;
+data_points[6,2] = 15.5;
+data_points[6,3] = a6[1];
+data_points[6,4] = a6[2];
 
 /*--Break--*/
 /*Now that we have the matrix we can change any pixle value to X,Y*/

@@ -1,6 +1,8 @@
 function CRSinvkin(y,x,z)
 	"Move CRS PLUS robot arm to the position denoted by x, y, z	"
 {
+	/*Ensure that the arm is in a default state*/
+	rob_ready();
 	
 	/*Most of these values are estimates from trial and error*/
 	L1 = 10;

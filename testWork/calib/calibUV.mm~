@@ -87,7 +87,7 @@ cc8[1..2] = proj_getCenter(back,img8);
 cc9[1..2] = proj_getCenter(back,img9);
 
 /*--Break--*/
-arr = make_array(9,
+arr = make_array(9,[
     normalize(PP*cc1),
     normalize(PP*cc2),
     normalize(PP*cc3),
@@ -97,7 +97,7 @@ arr = make_array(9,
     normalize(PP*cc7),
     normalize(PP*cc8),
     normalize(PP*cc9),
-);
+]);
 /*--Break--*/
 /*multiply the matrix by ccx*/
 prtme(arr);

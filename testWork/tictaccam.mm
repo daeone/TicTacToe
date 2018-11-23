@@ -92,8 +92,8 @@ function get_base_img(cam)
 	"Takes an image of the empty work area"
 {
 	/* Move arm out of the way */
-	CRSinvkin(15.5,0,6);
-	sleep(15);
+	CRSinvkin(0,15.5,6);
+	sleep(5);
 	/* Take image */
 	v4l2_streamon(cam);
 	base_img=v4l2_grab(cam);
@@ -104,6 +104,169 @@ function get_base_img(cam)
 	
 	/* return image */
 	base_img;
+};
+
+
+
+
+function generate_imgcoords(cam)
+{
+	
+	/*To generate the U,V coordinates*/
+	/*- take the base image and save it in base_img*/
+	/*- give the object to the arm, have it put the object at a position given*/
+	/*- get the arm out away*/
+	/*- take a picture and calculat the center of gravity*/
+	/*- save the U,V coordinates in the matrix ( write them down for data safety)*/
+
+	/* this matrix contains 6 data points [X,Y,u,v]*/
+	data_points = mk_fmat(1..6, 1..4);
+	
+	/*input the X,Y values in the data_points matrix*/
+	data_points[1,1] = 4.5;
+	data_points[1,2] = 11.0;
+	
+	data_points[2,1] = 4.5;
+	data_points[2,2] = 20;
+	
+	data_points[3,1] = -4.5;
+	data_points[3,2] = 20;
+	
+	data_points[4,1] = -4.5;
+	data_points[4,2] = 11;
+	
+	data_points[5,1] = 0;
+	data_points[5,2] = 15.5;
+	
+	data_points[6,1] = 4.5;
+	data_points[6,2] = 15.5;
+	
+	/*generate the u,v values*/
+	/*take the base_img*/	
+	
+	base_img = get_base_img(cam);
+	
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	servo_open(50);	
+	sleep(5);
+	CRSinvkin(0,15.5,6);
+	sleep(5);
+	servo_close(50);
+	sleep(5);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[1,1], data_points[1,2], 1);
+	sleep(5);
+	servo_open(50);
+	sleep(5);
+	CRSinvkin(15.5,0,6);
+	sleep(5);
+	img2 = proj_grabImage(cam);
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = proj_getCenter(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[1,3] = pixle_point[1];
+	data_points[1,4] = pixle_point[2];
+	sleep(2);
+	
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	CRSinvkin(data_points[1,1], data_points[1,2], 1);
+	sleep(5);
+	servo_close(50);
+	sleep(5);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[2,1], data_points[2,2], 1);
+	servo_open(50);
+	sleep(5);
+	CRSinvkin(0,15.5,6);
+	sleep(5);
+	img2 = proj_grabImage(cam);
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = proj_getCenter(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[2,3] = pixle_point[1];
+	data_points[2,4] = pixle_point[2];
+	sleep(2);
+
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	CRSinvkin(data_points[2,1], data_points[2,2], 1);
+	sleep(5);
+	servo_close(50);
+	sleep(5);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[3,1], data_points[3,2], 1);
+	sleep(5);
+	servo_open(50);	
+	sleep(5);
+	CRSinvkin(0,15.5,6);
+	sleep(5);
+	img2 = proj_grabImage(cam);
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = proj_getCenter(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[3,3] = pixle_point[1];
+	data_points[3,4] = pixle_point[2];
+	sleep(2);
+
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	CRSinvkin(data_points[3,1], data_points[3,2], 1);
+	sleep(5);
+	servo_close(50);
+	sleep(5);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[4,1], data_points[4,2], 1);
+	sleep(5);
+	servo_open(50);
+	sleep(5);
+	CRSinvkin(0,15.5,6);
+	sleep(5);
+	img2 = proj_grabImage(cam);
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = proj_getCenter(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[4,3] = pixle_point[1];
+	data_points[4,4] = pixle_point[2];
+	sleep(2);
+
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	CRSinvkin(data_points[3,1], data_points[3,2], 1);
+	sleep(5);
+	servo_close(50);
+	sleep(5);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[4,1], data_points[4,2], 1);
+	sleep(5);
+	servo_open(50);
+	sleep(5);
+	CRSinvkin(0,15.5,6);	
+	sleep(5);
+	img2 = proj_grabImage(cam);
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = proj_getCenter(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[5,3] = pixle_point[1];
+	data_points[5,4] = pixle_point[2];
+	sleep(2);
+	
+
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/	
+	CRSinvkin(data_points[3,1], data_points[3,2], 1);
+	sleep(5);
+	servo_close(50);
+	sleep(5);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[4,1], data_points[4,2], 1);
+	sleep(5);
+	servo_open(50);
+	sleep(5);
+	CRSinvkin(0,15.5,6);
+	sleep(5);
+	img2 = proj_grabImage(cam);
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = proj_getCenter(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[6,3] = pixle_point[1];
+	data_points[6,4] = pixle_point[2];
+	sleep(2);
 };
 
 function get_calibration_matrix(u, v, X, Y) 
@@ -146,177 +309,17 @@ function get_calibration_matrix(u, v, X, Y)
 	AA;
 };
 
-
-function generate_imgcoords()
-{
-	
-	/*To generate the U,V coordinates*/
-	/*- take the base image and save it in base_img*/
-	/*- give the object to the arm, have it put the object at a position given*/
-	/*- get the arm out away*/
-	/*- take a picture and calculat the center of gravity*/
-	/*- save the U,V coordinates in the matrix ( write them down for data safety)*/
-
-	/* this matrix contains 6 data points [X,Y,u,v]*/
-	data_points = mk_fmat(1..6, 1..4);
-	
-	/*input the X,Y values in the data_points matrix*/
-	data_points[1,1] = 11;
-	data_points[1,2] = 4.5;
-	
-	data_points[2,1] = 20;
-	data_points[2,2] = 4.5;
-	
-	data_points[3,1] = 20;
-	data_points[3,2] = -4.5;
-	
-	data_points[4,1] = 11;
-	data_points[4,2] = -4.5;
-	
-	data_points[5,1] = 15.5;
-	data_points[5,2] = 0;
-	
-	data_points[6,1] = 15.5;
-	data_points[6,2] = 4.5;
-	
-	/*generate the u,v values*/
-	/*take the base_img*/	
-	
-	base_img = get_base_img();
-	
-	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
-	servo_open(30);	
-	sleep(2);
-	CRSinvkin(15.5,0,1);
-	sleep(3);
-	servo_close(30);
-	/*delivers the object to the x,y position given*/
-	CRSinvkin(data_points[1,1], data_points[1,2], 1);
-	servo_open(30);
-	CRSinvkin(15.5,0,6);	
-	img2 = proj_grabImage;
-	/*use base_img and ref_img to calculate a u,v using ass1*/
-	pixle_point = diffimgobj(base_img,img2);
-	/*add this pixle point to the data_points matrix*/
-	data_points[1,3] = pixle_point[1];
-	data_points[1,4] = pixle_point[2];
-	
-	base_img = img2;
-	
-	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
-	CRSinvkin(data_points[1,1], data_points[1,2], 1);
-	sleep(3);
-	servo_close(30);
-	/*delivers the object to the x,y position given*/
-	CRSinvkin(data_points[2,1], data_points[2,2], 1);
-	servo_open(30);
-	sleep(3);
-	CRSinvkin(15.5,0,6);	
-	img2 = proj_grabImage;
-	/*use base_img and ref_img to calculate a u,v using ass1*/
-	pixle_point = diffimgobj(base_img,img2);
-	/*add this pixle point to the data_points matrix*/
-	data_points[2,3] = pixle_point[1];
-	data_points[2,4] = pixle_point[2];
-	
-	base_img = img2;
-
-	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
-	CRSinvkin(data_points[2,1], data_points[2,2], 1);
-	sleep(3);
-	servo_close(30);
-	/*delivers the object to the x,y position given*/
-	CRSinvkin(data_points[3,1], data_points[3,2], 1);
-	servo_open(30);	
-	sleep(3);
-	CRSinvkin(15.5,0,6);	
-	img2 = proj_grabImage;
-	/*use base_img and ref_img to calculate a u,v using ass1*/
-	pixle_point = diffimgobj(base_img,img2);
-	/*add this pixle point to the data_points matrix*/
-	data_points[3,3] = pixle_point[1];
-	data_points[3,4] = pixle_point[2];
-	
-	base_img = img2;	
-	
-	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
-	CRSinvkin(data_points[3,1], data_points[3,2], 1);
-	sleep(3);
-	servo_close(30);
-	/*delivers the object to the x,y position given*/
-	CRSinvkin(data_points[4,1], data_points[4,2], 1);
-	servo_open(30);
-	sleep(3);
-	CRSinvkin(15.5,0,6);	
-	img2 = proj_grabImage;
-	/*use base_img and ref_img to calculate a u,v using ass1*/
-	pixle_point = diffimgobj(base_img,img2);
-	/*add this pixle point to the data_points matrix*/
-	data_points[4,3] = pixle_point[1];
-	data_points[4,4] = pixle_point[2];
-	
-	base_img = img2;
-
-	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
-	CRSinvkin(data_points[3,1], data_points[3,2], 1);
-	sleep(3);
-	servo_close(30);
-	/*delivers the object to the x,y position given*/
-	CRSinvkin(data_points[4,1], data_points[4,2], 1);
-	servo_open(30);
-	sleep(3);
-	CRSinvkin(15.5,0,6);	
-	img2 = proj_grabImage;
-	/*use base_img and ref_img to calculate a u,v using ass1*/
-	pixle_point = diffimgobj(base_img,img2);
-	/*add this pixle point to the data_points matrix*/
-	data_points[5,3] = pixle_point[1];
-	data_points[5,4] = pixle_point[2];
-	
-	base_img = img2;
-
-	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/	
-	CRSinvkin(data_points[3,1], data_points[3,2], 1);
-	sleep(3);
-	servo_close(30);
-	/*delivers the object to the x,y position given*/
-	CRSinvkin(data_points[4,1], data_points[4,2], 1);
-	servo_open(30);
-	sleep(3);
-	CRSinvkin(15.5,0,6);	
-	img2 = proj_grabImage;
-	/*use base_img and ref_img to calculate a u,v using ass1*/
-	pixle_point = diffimgobj(base_img,img2);
-	/*add this pixle point to the data_points matrix*/
-	data_points[6,3] = pixle_point[1];
-	data_points[6,4] = pixle_point[2];
-	
-};
-
 function generate_PP(input_mat)"Generate bold P matrix from an matrix of calibration points. input_mat = matrix of 6 or more calibration pairs <u, y, X, Y>"
 {
-	/* Create a large array of calibration matrices using the input point pairs */
-	/* These calibration matrices are then stacked on top of each other */
-	for (i = 1; i <= input_mat->vmax; i++){
-		
-		u = input_mat[i, 1];
-		v = input_mat[i, 2];
-		X = input_mat[i, 3];
-		Y = input_mat[i, 4];
 
-		if (i <= 1){
-			mstack = get_calibration_matrix(u, v, X, Y); 
-		}
-	"Generate bold P matrix from an matrix of calibration points. input_mat = matrix of 6 or more calibration pairs <u, y, X, Y>"
-{
 	/* Create a large array of calibration matrices using the input point pairs */
 	/* These calibration matrices are then stacked on top of each other */
 	for (i = 1; i <= input_mat->vmax; i++){
 		
-		u = input_mat[i, 1];
-		v = input_mat[i, 2];
-		X = input_mat[i, 3];
-		Y = input_mat[i, 4];
+		X = input_mat[i, 1];
+		Y = input_mat[i, 2];
+		u = input_mat[i, 3];
+		v = input_mat[i, 4];
 
 		if (i <= 1){
 			mstack = get_calibration_matrix(u, v, X, Y); 
@@ -547,7 +550,7 @@ refY = mk_fmat(1..3,1..3,[
 if(xory = "X"){
   returnValue = refX;
 };
-if(xory = "Y")
+if(xory = "Y"){
   returnValue = refY;
 };
 
