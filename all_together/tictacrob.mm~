@@ -1,0 +1,6 @@
+/*This session is a sample game only using images, because the camera is giving bad images*/
+
+/*play starts and the camera-robot system is calibrated below*/
+
+/*make a 6x4 matrix that holds the calibration points*/
+calibPoints = mk_fma
