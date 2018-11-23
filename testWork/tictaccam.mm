@@ -18,8 +18,8 @@ function proj_camStream(cam){
 /*function grabs an image and returns an image object*/
 function proj_grabImage(cam){
 	v4l2_streamon(cam);    	
-   img=v4l2_grab(cam);
-   gshow(img,:rescale=t);
+   	img=v4l2_grab(cam);
+   	gshow(img,:rescale=t);
 	v4l2_streamoff(cam);
 	img;
 };
@@ -87,6 +87,286 @@ function proj_getCenter(img1,img2)
 
 	mk_fvec(1..2, [c_x, c_y]);
 };
+
+function get_base_img(cam)
+	"Takes an image of the empty work area"
+{
+	/* Move arm out of the way */
+	CRSinvkin(15.5,0,6);
+	sleep(15);
+	/* Take image */
+	v4l2_streamon(cam);
+	base_img=v4l2_grab(cam);
+	v4l2_streamoff(cam);
+	sleep(2);
+	/* Show image to user*/
+	gshow(base_img,:rescale=t);
+	
+	/* return image */
+	base_img;
+};
+
+function get_calibration_matrix(u, v, X, Y) 
+	"Compute a calibration array from the real world coordinates (X, Y, Z) and the image plane coordinates (u, v) of an object"
+{
+	AA = mk_fmat(1..3, 1..9);
+	
+	/* Z is set to 0 since all objects are assumed to be flat on the base */
+	Z = 0;
+
+	/* Initialize all matrix slots to 0 */
+	for (yy=1; yy <= 3; yy++){
+		for (xx = 1; xx <= 9; xx++){
+			AA[yy,xx] = 0;
+		};
+	};
+
+	AA[1,4] = -X;
+	AA[1,5] = -Y;
+	AA[1,6] = -1;
+	AA[1,7] = v * X;
+	AA[1,8] = v * Y;
+	AA[1,9] = v;
+	
+	AA[2,1] = X;
+	AA[2,2] = Y;
+	AA[2,3] = 1;
+	AA[2,7] = -u * X;
+	AA[2,8] = -u * Y;
+	AA[2,9] = -u;
+	
+	AA[3,1] = -v * X;
+	AA[3,2] = -v * Y;
+	AA[3,3] = -v;
+	AA[3,4] = u * X;
+	AA[3,5] = u * Y;
+	AA[3,6] = u;
+
+	/* return AA array */
+	AA;
+};
+
+
+function generate_imgcoords()
+{
+	
+	/*To generate the U,V coordinates*/
+	/*- take the base image and save it in base_img*/
+	/*- give the object to the arm, have it put the object at a position given*/
+	/*- get the arm out away*/
+	/*- take a picture and calculat the center of gravity*/
+	/*- save the U,V coordinates in the matrix ( write them down for data safety)*/
+
+	/* this matrix contains 6 data points [X,Y,u,v]*/
+	data_points = mk_fmat(1..6, 1..4);
+	
+	/*input the X,Y values in the data_points matrix*/
+	data_points[1,1] = 11;
+	data_points[1,2] = 4.5;
+	
+	data_points[2,1] = 20;
+	data_points[2,2] = 4.5;
+	
+	data_points[3,1] = 20;
+	data_points[3,2] = -4.5;
+	
+	data_points[4,1] = 11;
+	data_points[4,2] = -4.5;
+	
+	data_points[5,1] = 15.5;
+	data_points[5,2] = 0;
+	
+	data_points[6,1] = 15.5;
+	data_points[6,2] = 4.5;
+	
+	/*generate the u,v values*/
+	/*take the base_img*/	
+	
+	base_img = get_base_img();
+	
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	servo_open(30);	
+	sleep(2);
+	CRSinvkin(15.5,0,1);
+	sleep(3);
+	servo_close(30);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[1,1], data_points[1,2], 1);
+	servo_open(30);
+	CRSinvkin(15.5,0,6);	
+	img2 = proj_grabImage;
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = diffimgobj(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[1,3] = pixle_point[1];
+	data_points[1,4] = pixle_point[2];
+	
+	base_img = img2;
+	
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	CRSinvkin(data_points[1,1], data_points[1,2], 1);
+	sleep(3);
+	servo_close(30);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[2,1], data_points[2,2], 1);
+	servo_open(30);
+	sleep(3);
+	CRSinvkin(15.5,0,6);	
+	img2 = proj_grabImage;
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = diffimgobj(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[2,3] = pixle_point[1];
+	data_points[2,4] = pixle_point[2];
+	
+	base_img = img2;
+
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	CRSinvkin(data_points[2,1], data_points[2,2], 1);
+	sleep(3);
+	servo_close(30);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[3,1], data_points[3,2], 1);
+	servo_open(30);	
+	sleep(3);
+	CRSinvkin(15.5,0,6);	
+	img2 = proj_grabImage;
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = diffimgobj(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[3,3] = pixle_point[1];
+	data_points[3,4] = pixle_point[2];
+	
+	base_img = img2;	
+	
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	CRSinvkin(data_points[3,1], data_points[3,2], 1);
+	sleep(3);
+	servo_close(30);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[4,1], data_points[4,2], 1);
+	servo_open(30);
+	sleep(3);
+	CRSinvkin(15.5,0,6);	
+	img2 = proj_grabImage;
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = diffimgobj(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[4,3] = pixle_point[1];
+	data_points[4,4] = pixle_point[2];
+	
+	base_img = img2;
+
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	CRSinvkin(data_points[3,1], data_points[3,2], 1);
+	sleep(3);
+	servo_close(30);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[4,1], data_points[4,2], 1);
+	servo_open(30);
+	sleep(3);
+	CRSinvkin(15.5,0,6);	
+	img2 = proj_grabImage;
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = diffimgobj(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[5,3] = pixle_point[1];
+	data_points[5,4] = pixle_point[2];
+	
+	base_img = img2;
+
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/	
+	CRSinvkin(data_points[3,1], data_points[3,2], 1);
+	sleep(3);
+	servo_close(30);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[4,1], data_points[4,2], 1);
+	servo_open(30);
+	sleep(3);
+	CRSinvkin(15.5,0,6);	
+	img2 = proj_grabImage;
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = diffimgobj(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[6,3] = pixle_point[1];
+	data_points[6,4] = pixle_point[2];
+	
+};
+
+function generate_PP(input_mat)"Generate bold P matrix from an matrix of calibration points. input_mat = matrix of 6 or more calibration pairs <u, y, X, Y>"
+{
+	/* Create a large array of calibration matrices using the input point pairs */
+	/* These calibration matrices are then stacked on top of each other */
+	for (i = 1; i <= input_mat->vmax; i++){
+		
+		u = input_mat[i, 1];
+		v = input_mat[i, 2];
+		X = input_mat[i, 3];
+		Y = input_mat[i, 4];
+
+		if (i <= 1){
+			mstack = get_calibration_matrix(u, v, X, Y); 
+		}
+	"Generate bold P matrix from an matrix of calibration points. input_mat = matrix of 6 or more calibration pairs <u, y, X, Y>"
+{
+	/* Create a large array of calibration matrices using the input point pairs */
+	/* These calibration matrices are then stacked on top of each other */
+	for (i = 1; i <= input_mat->vmax; i++){
+		
+		u = input_mat[i, 1];
+		v = input_mat[i, 2];
+		X = input_mat[i, 3];
+		Y = input_mat[i, 4];
+
+		if (i <= 1){
+			mstack = get_calibration_matrix(u, v, X, Y); 
+		}
+		
+		else {
+			mstack = mstack <|> get_calibration_matrix(u, v, X, Y);
+		};
+	};
+	
+	/* perform the Single Value Decomposition on the combined array */
+	svd_mat = SVD(mstack);
+	
+	/* Find the min value of the vector in svd_mat[2] */
+	e_vec = svd_mat[2];
+	vT = svd_mat[3];
+	
+	min_val = e_vec[1];
+	min_index = 1;
+	for (i = 2; i <= e_vec->vmax; i++){
+		if (e_vec[i] < min_val){
+			min_val = e_vec[i];
+			min_index = i;
+		};
+	};
+	
+	tmp_col = vT[1..vT->vsize, min_index];
+	
+	PP = mk_fmat(1..3, 1..3);
+	
+	c = 0;
+	for (i = 1; i <= 3; i++){
+		for (j = 1; j <= 3; j++){
+			c += 1;
+			PP[i, j] = tmp_col[c];
+		};
+	};
+	PP;
+};
+
+/* Given an image point (x and y) and camera matrix, return the corresponding real world position vector */  
+function findWorldPosition(x,y,PP)
+{
+	pinv = inverse_mat(PP);
+	ivec = mk_fvec(1..3, [x,y,1]);
+	pvec = PP * ivec;
+	pvec = normalizeVec(pvec);
+	printf("X: %f\tY:%f\tZ:%f\n",pvec[1],pvec[2],pvec[3]);
+};
+
 
 /*function takes a list and displays the content*/
 function proj_prtList(list){	
