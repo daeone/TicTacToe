@@ -269,101 +269,61 @@ function generate_imgcoords(cam)
 	sleep(2);
 };
 
-function get_calibration_matrix(u, v, X, Y) 
-	"Compute a calibration array from the real world coordinates (X, Y, Z) and the image plane coordinates (u, v) of an object"
-{
-	AA = mk_fmat(1..3, 1..9);
-	
-	/* Z is set to 0 since all objects are assumed to be flat on the base */
-	Z = 0;
+/* takes four values u,v,X,Y and returns the matrix AAi  */
+function amat(u,v,X,Y)
+{ 
+	AAi = mk_fmat(1..3,1..9);
 
-	/* Initialize all matrix slots to 0 */
-	for (yy=1; yy <= 3; yy++){
-		for (xx = 1; xx <= 9; xx++){
-			AA[yy,xx] = 0;
-		};
-	};
-
-	AA[1,4] = -X;
-	AA[1,5] = -Y;
-	AA[1,6] = -1;
-	AA[1,7] = v * X;
-	AA[1,8] = v * Y;
-	AA[1,9] = v;
+	AAi[1,4] = -X;
+	AAi[1,5] = -Y;
+	AAi[1,6] = -1;
+	AAi[1,7] = v * X;
+	AAi[1,8] = v * Y;
+	AAi[1,9] = v;
+	AAi[2,1] = X;
+	AAi[2,2] = Y;
+	AAi[2,3] = 1;
+	AAi[2,7] = -u * X;
+	AAi[2,8] = -u * Y;
+	AAi[2,9] = -u;
+	AAi[3,1] = -v * X;
+	AAi[3,2] = -v * Y;
+	AAi[3,3] = -v;
+	AAi[3,4] = u * X;
+	AAi[3,5] = u * Y;
+	AAi[3,6] = u;
 	
-	AA[2,1] = X;
-	AA[2,2] = Y;
-	AA[2,3] = 1;
-	AA[2,7] = -u * X;
-	AA[2,8] = -u * Y;
-	AA[2,9] = -u;
-	
-	AA[3,1] = -v * X;
-	AA[3,2] = -v * Y;
-	AA[3,3] = -v;
-	AA[3,4] = u * X;
-	AA[3,5] = u * Y;
-	AA[3,6] = u;
-
-	/* return AA array */
-	AA;
+	AAi;
 };
 
-function generate_PP(input_mat)"Generate bold P matrix from an matrix of calibration points. input_mat = matrix of 6 or more calibration pairs <u, y, X, Y>"
+
+/* Takes n * 4 matrix, each row contains value for u,v,X,Y and returns camera matrix p (3x3)*/
+function cameraMat(m)
 {
+	avec = mk_fvec(3*9*m->vsize);
+	amat(m[1,1],m[1,2],m[1,3],m[1,4]);
+	cmat = AAi;
+	
+	for (i=2; i < m->vsize+1; i++)
+	{
+		amat(m[i,1],m[i,2],m[i,3],m[i,4]);
+		cmat = cmat <|> AAi;
+	
+	};
+	svd = SVD(cmat^T*cmat);
 
-	/* Create a large array of calibration matrices using the input point pairs */
-	/* These calibration matrices are then stacked on top of each other */
-	for (i = 1; i <= input_mat->vmax; i++){
-		
-		X = input_mat[i, 1];
-		Y = input_mat[i, 2];
-		u = input_mat[i, 3];
-		v = input_mat[i, 4];
-
-		if (i <= 1){
-			mstack = get_calibration_matrix(u, v, X, Y); 
-		}
-		
-		else {
-			mstack = mstack <|> get_calibration_matrix(u, v, X, Y);
-		};
-	};
-	
-	/* perform the Single Value Decomposition on the combined array */
-	svd_mat = SVD(mstack);
-	
-	/* Find the min value of the vector in svd_mat[2] */
-	e_vec = svd_mat[2];
-	vT = svd_mat[3];
-	
-	min_val = e_vec[1];
-	min_index = 1;
-	for (i = 2; i <= e_vec->vmax; i++){
-		if (e_vec[i] < min_val){
-			min_val = e_vec[i];
-			min_index = i;
-		};
-	};
-	
-	tmp_col = vT[1..vT->vsize, min_index];
-	
-	PP = mk_fmat(1..3, 1..3);
-	
-	c = 0;
-	for (i = 1; i <= 3; i++){
-		for (j = 1; j <= 3; j++){
-			c += 1;
-			PP[i, j] = tmp_col[c];
-		};
-	};
-	PP;
+	p = svd[3][1..svd[3]->vsize,minind_fvec(svd[2])];
+	pmat = unstack_vec(p,3,3);
+	pmat = pmat^T;
+	inner_prtMat(pmat);
+	pinv = inverse_mat(pmat);
+	pinv;
 };
+
 
 /* Given an image point (x and y) and camera matrix, return the corresponding real world position vector */  
 function findWorldPosition(x,y,PP)
 {
-	pinv = inverse_mat(PP);
 	ivec = mk_fvec(1..3, [x,y,1]);
 	pvec = PP * ivec;
 	pvec = normalizeVec(pvec);
@@ -474,6 +434,12 @@ function inner_prtMat(mat){
     0;
 };
 
+function normalizeVec(v){
+    f = mk_fvec(1..3);
+    f = v/v[3];
+    f;
+};
+
 /*generates a 3x3 square matrix filled with the input param*/
 function inner_fillMat(x){
     mat = mk_fmat(1..3,1..3,[[x,x,x],[x,x,x],[x,x,x]]);
@@ -560,4 +526,55 @@ if(xory = "Y"){
 /*--------------------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------------------*/
 /*returnValue;*/
+};
+
+function CRSinvkin(x,y,z)
+	"Move CRS PLUS robot arm to the position denoted by x, y, z	"
+{
+	/*Ensure that the arm is in a default state*/
+	rob_ready();
+	
+	/*Most of these values are estimates from trial and error*/
+	L1 = 11;
+	L2 = 10;
+	L3 = 11.5;
+	L4 = 6.50;
+
+	/*R is the vector from the origin to the desierd location of {4}*/
+	R = x^2 + y^2 + z^2;
+	
+	/*z must be ajusted to acount for the hight of the arm from the table and the length of the end effactor*/
+	/* z is made negative because for some reason, a positive z does not work*/
+	/*may be due to the ordering of atan2*/
+	z = -(z + (-L1 + L4));
+	
+	temp_D = (R - L3^2 - L2^2)/(2*L3*L2);
+	rad_Th1 = atan2(y, x);
+	rad_Th3 = atan2(sqrt(1 - temp_D^2), temp_D);
+	rad_Th2 = atan2(sqrt(x^2+y^2), z) - atan2(L2 + L3* cos(rad_Th3), L3*sin(rad_Th3));
+ 	
+	f_Th1 = rad_to_deg(rad_Th1);
+	f_Th2 = rad_to_deg(rad_Th2);
+	f_Th3 = rad_to_deg(rad_Th3);
+	
+	/*if Theta2 is negative, the arm joint would have to bend up. the CRS PLUS has not been designed with this feature in mind */
+	/*In this case, Theta2 and Theta3 must be recalculated (with the second solution for Theta3)*/
+	if (f_Th2 < 0){
+		rad_Th3 = atan2(-sqrt(1-temp_D^2), temp_D);
+		rad_Th2 = atan2(sqrt(x^2+y^2), z) - atan2(L2 + L3* cos(rad_Th3), L3*sin(rad_Th3));
+		f_Th2 = rad_to_deg(rad_Th2);
+		f_Th3 = rad_to_deg(rad_Th3);
+	};
+	
+	/*Wrist must always be facing straight down, similar to a claw mechine*/
+	wrist = (f_Th2 - f_Th3) + 90;
+	
+	/*Move arm to specefied location and activate the end effactor*/
+	rob_move_abs(f_Th1, f_Th2, f_Th3, wrist, 0); 
+};
+
+function rad_to_deg(val1)
+	"Convert Radians to Degrees"
+{
+	val1 * (180 / PI);
 };

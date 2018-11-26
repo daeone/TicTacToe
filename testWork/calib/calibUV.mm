@@ -17,6 +17,7 @@ function prtMe(arr){
     };
 };
 /*--Break--*/
+/*calibration images*/
 back = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/calib/back.ppm");
 c1 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/calib/c1.ppm");
 c2 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/calib/c2.ppm");
@@ -88,6 +89,9 @@ data_points[6,4] = a6[2];
 /*--Break--*/
 /*Now that we have the matrix we can change any pixle value to X,Y*/
 /*get the pictures and find the centers*/
+
+cameraMat(data_points);
+
 /*--Break--*/
 
 img1 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/expr/img1.ppm");
@@ -127,16 +131,31 @@ cc9[1..2] = proj_getCenter(back,img9);
 
 /*--Break--*/
 arr = make_array(9,[
-    normalize(PP*cc1),
-    normalize(PP*cc2),
-    normalize(PP*cc3),
-    normalize(PP*cc4),
-    normalize(PP*cc5),
-    normalize(PP*cc6),
-    normalize(PP*cc7),
-    normalize(PP*cc8),
-    normalize(PP*cc9),
+    normalize(pinv*cc1),
+    normalize(pinv*cc2),
+    normalize(pinv*cc3),
+    normalize(pinv*cc4),
+    normalize(pinv*cc5),
+    normalize(pinv*cc6),
+    normalize(pinv*cc7),
+    normalize(pinv*cc8),
+    normalize(pinv*cc9)
 ]);
+
+arr = mk_fmat(1..2,1..9,[
+    normalize(pinv*cc1),
+    normalize(pinv*cc2),
+    normalize(pinv*cc3),
+    normalize(pinv*cc4),
+    normalize(pinv*cc5),
+    normalize(pinv*cc6),
+    normalize(pinv*cc7),
+    normalize(pinv*cc8),
+    normalize(pinv*cc9)
+]);
+
+printMat(arr);
+
 /*--Break--*/
 /*multiply the matrix by ccx*/
 prtme(arr);

@@ -88,6 +88,10 @@ data_points[6,4] = a6[2];
 /*--Break--*/
 /*Now that we have the matrix we can change any pixle value to X,Y*/
 /*get the pictures and find the centers*/
+
+cameraMat(data_points);
+
+
 /*--Break--*/
 
 img1 = read_img("/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/expr/img1.ppm");

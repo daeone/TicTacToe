@@ -72,18 +72,18 @@ function move(x,y,zz)
 
 
 };
-/*function CRSinvkin(x,y,zz)*/
-/*{*/
+function CRSinvkin(x,y,zz)
+{
  	
-	/*servo_open(50);*/	
-	/*move(x,y,zz);*/
-	/*servo_close(40);*/
-	/*sleep(4);*/
-	/*rob_move_abs(0,50,60,0,0);*/
-	/*sleep(2);*/
+	servo_open(50);	
+	move(x,y,zz);
+	servo_close(40);
+	sleep(4);
+	rob_move_abs(0,50,60,0,0);
+	sleep(2);
 
 
-/*};*/
+};
 
 
 

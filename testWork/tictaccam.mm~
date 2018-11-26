@@ -18,8 +18,8 @@ function proj_camStream(cam){
 /*function grabs an image and returns an image object*/
 function proj_grabImage(cam){
 	v4l2_streamon(cam);    	
-   img=v4l2_grab(cam);
-   gshow(img,:rescale=t);
+   	img=v4l2_grab(cam);
+   	gshow(img,:rescale=t);
 	v4l2_streamoff(cam);
 	img;
 };
@@ -87,6 +87,249 @@ function proj_getCenter(img1,img2)
 
 	mk_fvec(1..2, [c_x, c_y]);
 };
+
+function get_base_img(cam)
+	"Takes an image of the empty work area"
+{
+	/* Move arm out of the way */
+	CRSinvkin(0,15.5,6);
+	sleep(5);
+	/* Take image */
+	v4l2_streamon(cam);
+	base_img=v4l2_grab(cam);
+	v4l2_streamoff(cam);
+	sleep(2);
+	/* Show image to user*/
+	gshow(base_img,:rescale=t);
+	
+	/* return image */
+	base_img;
+};
+
+
+
+
+function generate_imgcoords(cam)
+{
+	
+	/*To generate the U,V coordinates*/
+	/*- take the base image and save it in base_img*/
+	/*- give the object to the arm, have it put the object at a position given*/
+	/*- get the arm out away*/
+	/*- take a picture and calculat the center of gravity*/
+	/*- save the U,V coordinates in the matrix ( write them down for data safety)*/
+
+	/* this matrix contains 6 data points [X,Y,u,v]*/
+	data_points = mk_fmat(1..6, 1..4);
+	
+	/*input the X,Y values in the data_points matrix*/
+	data_points[1,1] = 4.5;
+	data_points[1,2] = 11.0;
+	
+	data_points[2,1] = 4.5;
+	data_points[2,2] = 20;
+	
+	data_points[3,1] = -4.5;
+	data_points[3,2] = 20;
+	
+	data_points[4,1] = -4.5;
+	data_points[4,2] = 11;
+	
+	data_points[5,1] = 0;
+	data_points[5,2] = 15.5;
+	
+	data_points[6,1] = 4.5;
+	data_points[6,2] = 15.5;
+	
+	/*generate the u,v values*/
+	/*take the base_img*/	
+	
+	base_img = get_base_img(cam);
+	
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	servo_open(50);	
+	sleep(5);
+	CRSinvkin(0,15.5,6);
+	sleep(5);
+	servo_close(50);
+	sleep(5);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[1,1], data_points[1,2], 1);
+	sleep(5);
+	servo_open(50);
+	sleep(5);
+	CRSinvkin(15.5,0,6);
+	sleep(5);
+	img2 = proj_grabImage(cam);
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = proj_getCenter(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[1,3] = pixle_point[1];
+	data_points[1,4] = pixle_point[2];
+	sleep(2);
+	
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	CRSinvkin(data_points[1,1], data_points[1,2], 1);
+	sleep(5);
+	servo_close(50);
+	sleep(5);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[2,1], data_points[2,2], 1);
+	servo_open(50);
+	sleep(5);
+	CRSinvkin(0,15.5,6);
+	sleep(5);
+	img2 = proj_grabImage(cam);
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = proj_getCenter(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[2,3] = pixle_point[1];
+	data_points[2,4] = pixle_point[2];
+	sleep(2);
+
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	CRSinvkin(data_points[2,1], data_points[2,2], 1);
+	sleep(5);
+	servo_close(50);
+	sleep(5);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[3,1], data_points[3,2], 1);
+	sleep(5);
+	servo_open(50);	
+	sleep(5);
+	CRSinvkin(0,15.5,6);
+	sleep(5);
+	img2 = proj_grabImage(cam);
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = proj_getCenter(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[3,3] = pixle_point[1];
+	data_points[3,4] = pixle_point[2];
+	sleep(2);
+
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	CRSinvkin(data_points[3,1], data_points[3,2], 1);
+	sleep(5);
+	servo_close(50);
+	sleep(5);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[4,1], data_points[4,2], 1);
+	sleep(5);
+	servo_open(50);
+	sleep(5);
+	CRSinvkin(0,15.5,6);
+	sleep(5);
+	img2 = proj_grabImage(cam);
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = proj_getCenter(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[4,3] = pixle_point[1];
+	data_points[4,4] = pixle_point[2];
+	sleep(2);
+
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
+	CRSinvkin(data_points[3,1], data_points[3,2], 1);
+	sleep(5);
+	servo_close(50);
+	sleep(5);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[4,1], data_points[4,2], 1);
+	sleep(5);
+	servo_open(50);
+	sleep(5);
+	CRSinvkin(0,15.5,6);	
+	sleep(5);
+	img2 = proj_grabImage(cam);
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = proj_getCenter(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[5,3] = pixle_point[1];
+	data_points[5,4] = pixle_point[2];
+	sleep(2);
+	
+
+	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/	
+	CRSinvkin(data_points[3,1], data_points[3,2], 1);
+	sleep(5);
+	servo_close(50);
+	sleep(5);
+	/*delivers the object to the x,y position given*/
+	CRSinvkin(data_points[4,1], data_points[4,2], 1);
+	sleep(5);
+	servo_open(50);
+	sleep(5);
+	CRSinvkin(0,15.5,6);
+	sleep(5);
+	img2 = proj_grabImage(cam);
+	/*use base_img and ref_img to calculate a u,v using ass1*/
+	pixle_point = proj_getCenter(base_img,img2);
+	/*add this pixle point to the data_points matrix*/
+	data_points[6,3] = pixle_point[1];
+	data_points[6,4] = pixle_point[2];
+	sleep(2);
+};
+
+/* takes four values u,v,X,Y and returns the matrix AAi  */
+function amat(u,v,X,Y)
+{ 
+	AAi = mk_fmat(1..3,1..9);
+
+	AAi[1,4] = -X;
+	AAi[1,5] = -Y;
+	AAi[1,6] = -1;
+	AAi[1,7] = v * X;
+	AAi[1,8] = v * Y;
+	AAi[1,9] = v;
+	AAi[2,1] = X;
+	AAi[2,2] = Y;
+	AAi[2,3] = 1;
+	AAi[2,7] = -u * X;
+	AAi[2,8] = -u * Y;
+	AAi[2,9] = -u;
+	AAi[3,1] = -v * X;
+	AAi[3,2] = -v * Y;
+	AAi[3,3] = -v;
+	AAi[3,4] = u * X;
+	AAi[3,5] = u * Y;
+	AAi[3,6] = u;
+	
+	AAi;
+};
+
+
+/* Takes n * 4 matrix, each row contains value for u,v,X,Y and returns camera matrix p (3x3)*/
+function cameraMat(m)
+{
+	avec = mk_fvec(3*9*m->vsize);
+	amat(m[1,1],m[1,2],m[1,3],m[1,4]);
+	cmat = AAi;
+	
+	for (i=2; i < m->vsize+1; i++)
+	{
+		amat(m[i,1],m[i,2],m[i,3],m[i,4]);
+		cmat = cmat <|> AAi;
+	
+	};
+	svd = SVD(cmat^T*cmat);
+
+	p = svd[3][1..svd[3]->vsize,minind_fvec(svd[2])];
+	pmat = unstack_vec(p,3,3);
+	pmat = pmat^T;
+	inner_prtMat(pmat);
+	pinv = inverse_mat(pmat);
+	pinv;
+};
+
+
+/* Given an image point (x and y) and camera matrix, return the corresponding real world position vector */  
+function findWorldPosition(x,y,PP)
+{
+	ivec = mk_fvec(1..3, [x,y,1]);
+	pvec = PP * ivec;
+	pvec = normalizeVec(pvec);
+	printf("X: %f\tY:%f\tZ:%f\n",pvec[1],pvec[2],pvec[3]);
+};
+
 
 /*function takes a list and displays the content*/
 function proj_prtList(list){	
@@ -191,6 +434,12 @@ function inner_prtMat(mat){
     0;
 };
 
+function normalizeVec(v){
+    f = mk_fvec(1..3);
+    f = v/v[3];
+    f;
+};
+
 /*generates a 3x3 square matrix filled with the input param*/
 function inner_fillMat(x){
     mat = mk_fmat(1..3,1..3,[[x,x,x],[x,x,x],[x,x,x]]);
@@ -267,7 +516,7 @@ refY = mk_fmat(1..3,1..3,[
 if(xory = "X"){
   returnValue = refX;
 };
-if(xory = "Y")
+if(xory = "Y"){
   returnValue = refY;
 };
 
@@ -276,5 +525,56 @@ if(xory = "Y")
 /*--------------------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------------------*/
-returnValue;
+/*returnValue;*/
+};
+
+function CRSinvkin(x,y,z)
+	"Move CRS PLUS robot arm to the position denoted by x, y, z	"
+{
+	/*Ensure that the arm is in a default state*/
+	rob_ready();
+	
+	/*Most of these values are estimates from trial and error*/
+	L1 = 11;
+	L2 = 10;
+	L3 = 11.5;
+	L4 = 6.50;
+
+	/*R is the vector from the origin to the desierd location of {4}*/
+	R = x^2 + y^2 + z^2;
+	
+	/*z must be ajusted to acount for the hight of the arm from the table and the length of the end effactor*/
+	/* z is made negative because for some reason, a positive z does not work*/
+	/*may be due to the ordering of atan2*/
+	z = -(z + (-L1 + L4));
+	
+	temp_D = (R - L3^2 - L2^2)/(2*L3*L2);
+	rad_Th1 = atan2(y, x);
+	rad_Th3 = atan2(sqrt(1 - temp_D^2), temp_D);
+	rad_Th2 = atan2(sqrt(x^2+y^2), z) - atan2(L2 + L3* cos(rad_Th3), L3*sin(rad_Th3));
+ 	
+	f_Th1 = rad_to_deg(rad_Th1);
+	f_Th2 = rad_to_deg(rad_Th2);
+	f_Th3 = rad_to_deg(rad_Th3);
+	
+	/*if Theta2 is negative, the arm joint would have to bend up. the CRS PLUS has not been designed with this feature in mind */
+	/*In this case, Theta2 and Theta3 must be recalculated (with the second solution for Theta3)*/
+	if (f_Th2 < 0){
+		rad_Th3 = atan2(-sqrt(1-temp_D^2), temp_D);
+		rad_Th2 = atan2(sqrt(x^2+y^2), z) - atan2(L2 + L3* cos(rad_Th3), L3*sin(rad_Th3));
+		f_Th2 = rad_to_deg(rad_Th2);
+		f_Th3 = rad_to_deg(rad_Th3);
+	};
+	
+	/*Wrist must always be facing straight down, similar to a claw mechine*/
+	wrist = (f_Th2 - f_Th3) + 90;
+	
+	/*Move arm to specefied location and activate the end effactor*/
+	rob_move_abs(f_Th1, f_Th2, f_Th3, wrist, 0); 
+};
+
+function rad_to_deg(val1)
+	"Convert Radians to Degrees"
+{
+	val1 * (180 / PI);
 };
