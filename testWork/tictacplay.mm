@@ -37,6 +37,7 @@ function startGame()
 	    background = proj_grabImage();
             printBoard(board);
 	    clicked = setButton("Play!"); 
+            turn = 1; 
         };
     };    
 
@@ -49,18 +50,16 @@ function startGame()
 
 function play(board)
 {
-    for (int i=0; i<board->vsize; i++) 
+    for (i=0; i<board->vsize; i++) 
     { 
-        for (int j=0; j<board->hsize; j++)
+        for (j=0; j<board->hsize; j++)
         {
             if (board[i][j] == -1){board[i][j] = 1;}; 
         };    
     }; 
-    /* 
-        Move the piece to the grid.
-    */
-    printf("Your turn...\n");
 
+    /* Move the robot should be added */
+    printf("Your turn...\n");
     board; 
 };
 
@@ -68,9 +67,9 @@ function play(board)
 function initialize(board) 
 { 
     /* Initially the board is empty */ 
-    for (int i=0; i<board->vsize; i++) 
+    for (i=0; i<board->vsize; i++) 
     { 
-        for (int j=0; j<board->hsize; j++)
+        for (j=0; j<board->hsize; j++)
         {
             board[i][j] = -1; 
         };    
@@ -78,14 +77,13 @@ function initialize(board)
     board; 
 }; 
 
-/*
-   1 or 2 if game is over.
-   0 if game is draw.
-   -1 if game is still in progress. 
-*/
+/*  1 or 2 if game is over. */
+/*  0 if game is draw.      */
+/* -1 if game is still in progress.  */
+   
 function checkWinner(board)
 {
-    int winner;
+    winner;
     if (board[1,1] == board[1,2] && board[1,2] == board[1,3]) {winner = board[1,1];}
     else if (board[2,1] == board[2,2] && board[2,2] == board[2,3]) {winner = board[2,1];}       
     else if (board[3,1] == board[3,2] && board[3,2] == board[3,3]) {winner = board[3,1];}       
