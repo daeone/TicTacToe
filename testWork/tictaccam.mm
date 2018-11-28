@@ -92,7 +92,7 @@ function get_base_img(cam)
 	"Takes an image of the empty work area"
 {
 	/* Move arm out of the way */
-	CRSinvkin(0,15.5,6);
+	rob_move_abs(0,90,0,0,0);
 	sleep(5);
 	/* Take image */
 	v4l2_streamon(cam);
@@ -108,7 +108,7 @@ function get_base_img(cam)
 
 
 
-
+/*it generates the data_points matrix 6x4 to get the PPinv*/
 function generate_imgcoords(cam)
 {
 	
@@ -123,28 +123,28 @@ function generate_imgcoords(cam)
 	data_points = mk_fmat(1..6, 1..4);
 	
 	/*input the X,Y values in the data_points matrix*/
-	data_points[1,1] = 4.5;
-	data_points[1,2] = 11.0;
+	data_points[1,1] = 11.0;
+	data_points[1,2] = 4.5;
 	
-	data_points[2,1] = 4.5;
-	data_points[2,2] = 20;
+	data_points[2,1] = 20;
+	data_points[2,2] = 4.5;
 	
-	data_points[3,1] = -4.5;
-	data_points[3,2] = 20;
+	data_points[3,1] = 20;
+	data_points[3,2] = -4.5;
 	
-	data_points[4,1] = -4.5;
-	data_points[4,2] = 11;
+	data_points[4,1] = 11;
+	data_points[4,2] = -4.5;
 	
-	data_points[5,1] = 0;
-	data_points[5,2] = 15.5;
+	data_points[5,1] = 15.5;
+	data_points[5,2] = 0;
 	
-	data_points[6,1] = 4.5;
-	data_points[6,2] = 15.5;
+	data_points[6,1] = 15;
+	data_points[6,2] = 4.5;
 	
 	/*generate the u,v values*/
 	/*take the base_img*/	
 	
-	rob_move_abs(0,90,0,0,0);
+	/*rob_move_abs(0,90,0,0,0);*/
 	sleep(4);
 	base_img = proj_grabImage(cam);
 	
@@ -156,7 +156,7 @@ function generate_imgcoords(cam)
 	servo_ready();
 	sleep(4);
 	
-	for(i=1; i<(data_points->vsize+1);i++)
+	for(i=1; i<=data_points->vsize;i++)
 	{
 	 
 	    /*delivers the object to the x,y position given*/
@@ -169,11 +169,11 @@ function generate_imgcoords(cam)
 	    img2 = proj_grabImage(cam);
 	    
 	    /*use base_img and ref_img to calculate a u,v using ass1*/
-	    pixle_point = diffimgobj(base_img,img2);
+	    pixle_point = proj_getCenter(base_img,img2);
 
 	    /*add this pixle point to the data_points matrix*/
-	    data_points[1,3] = pixle_point[1];
-	    data_points[1,4] = pixle_point[2];
+	    data_points[i,3] = pixle_point[1];
+	    data_points[i,4] = pixle_point[2];
 
 	    /*go to where the object is, grab it and return to the ready position*/
 	    CRSinvkin(data_points[i,1], data_points[i,2], 1);
@@ -187,7 +187,7 @@ function generate_imgcoords(cam)
 };
 
 /* takes four values u,v,X,Y and returns the matrix AAi  */
-function amat(u,v,X,Y)
+function amat(X,Y,u,v)
 { 
 	AAi = mk_fmat(1..3,1..9);
 
@@ -214,7 +214,7 @@ function amat(u,v,X,Y)
 };
 
 
-/* Takes n * 4 matrix, each row contains value for u,v,X,Y and returns camera matrix p (3x3)*/
+/* Takes n * 4 matrix, each row contains value for X,Y,u,v and returns camera matrix PPinv (3x3)*/
 function cameraMat(m)
 {
 	avec = mk_fvec(3*9*m->vsize);

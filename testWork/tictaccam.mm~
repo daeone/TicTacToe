@@ -144,129 +144,46 @@ function generate_imgcoords(cam)
 	/*generate the u,v values*/
 	/*take the base_img*/	
 	
-	base_img = get_base_img(cam);
+	rob_move_abs(0,90,0,0,0);
+	sleep(4);
+	base_img = proj_grabImage(cam);
 	
-	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
-	servo_open(50);	
-	sleep(5);
-	CRSinvkin(0,15.5,6);
-	sleep(5);
+	/*go to the base position and grab the object*/
+	CRSinvkin (-15, 0, 1);
+	sleep(4);
 	servo_close(50);
-	sleep(5);
-	/*delivers the object to the x,y position given*/
-	CRSinvkin(data_points[1,1], data_points[1,2], 1);
-	sleep(5);
-	servo_open(50);
-	sleep(5);
-	CRSinvkin(15.5,0,6);
-	sleep(5);
-	img2 = proj_grabImage(cam);
-	/*use base_img and ref_img to calculate a u,v using ass1*/
-	pixle_point = proj_getCenter(base_img,img2);
-	/*add this pixle point to the data_points matrix*/
-	data_points[1,3] = pixle_point[1];
-	data_points[1,4] = pixle_point[2];
-	sleep(2);
+	sleep(4);
+	servo_ready();
+	sleep(4);
 	
-	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
-	CRSinvkin(data_points[1,1], data_points[1,2], 1);
-	sleep(5);
-	servo_close(50);
-	sleep(5);
-	/*delivers the object to the x,y position given*/
-	CRSinvkin(data_points[2,1], data_points[2,2], 1);
-	servo_open(50);
-	sleep(5);
-	CRSinvkin(0,15.5,6);
-	sleep(5);
-	img2 = proj_grabImage(cam);
-	/*use base_img and ref_img to calculate a u,v using ass1*/
-	pixle_point = proj_getCenter(base_img,img2);
-	/*add this pixle point to the data_points matrix*/
-	data_points[2,3] = pixle_point[1];
-	data_points[2,4] = pixle_point[2];
-	sleep(2);
+	for(i=1; i<(data_points->vsize+1);i++)
+	{
+	 
+	    /*delivers the object to the x,y position given*/
+	    CRSinvkin(data_points[i,1], data_points[i,2], 1);
+	    sleep(4);
+	    servo_open(50);
+	    sleep(4);
+	    rob_move_abs(0,90,0,0,0);
+	    sleep(4);
+	    img2 = proj_grabImage(cam);
+	    
+	    /*use base_img and ref_img to calculate a u,v using ass1*/
+	    pixle_point = diffimgobj(base_img,img2);
 
-	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
-	CRSinvkin(data_points[2,1], data_points[2,2], 1);
-	sleep(5);
-	servo_close(50);
-	sleep(5);
-	/*delivers the object to the x,y position given*/
-	CRSinvkin(data_points[3,1], data_points[3,2], 1);
-	sleep(5);
-	servo_open(50);	
-	sleep(5);
-	CRSinvkin(0,15.5,6);
-	sleep(5);
-	img2 = proj_grabImage(cam);
-	/*use base_img and ref_img to calculate a u,v using ass1*/
-	pixle_point = proj_getCenter(base_img,img2);
-	/*add this pixle point to the data_points matrix*/
-	data_points[3,3] = pixle_point[1];
-	data_points[3,4] = pixle_point[2];
-	sleep(2);
+	    /*add this pixle point to the data_points matrix*/
+	    data_points[1,3] = pixle_point[1];
+	    data_points[1,4] = pixle_point[2];
 
-	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
-	CRSinvkin(data_points[3,1], data_points[3,2], 1);
-	sleep(5);
-	servo_close(50);
-	sleep(5);
-	/*delivers the object to the x,y position given*/
-	CRSinvkin(data_points[4,1], data_points[4,2], 1);
-	sleep(5);
-	servo_open(50);
-	sleep(5);
-	CRSinvkin(0,15.5,6);
-	sleep(5);
-	img2 = proj_grabImage(cam);
-	/*use base_img and ref_img to calculate a u,v using ass1*/
-	pixle_point = proj_getCenter(base_img,img2);
-	/*add this pixle point to the data_points matrix*/
-	data_points[4,3] = pixle_point[1];
-	data_points[4,4] = pixle_point[2];
-	sleep(2);
-
-	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/
-	CRSinvkin(data_points[3,1], data_points[3,2], 1);
-	sleep(5);
-	servo_close(50);
-	sleep(5);
-	/*delivers the object to the x,y position given*/
-	CRSinvkin(data_points[4,1], data_points[4,2], 1);
-	sleep(5);
-	servo_open(50);
-	sleep(5);
-	CRSinvkin(0,15.5,6);	
-	sleep(5);
-	img2 = proj_grabImage(cam);
-	/*use base_img and ref_img to calculate a u,v using ass1*/
-	pixle_point = proj_getCenter(base_img,img2);
-	/*add this pixle point to the data_points matrix*/
-	data_points[5,3] = pixle_point[1];
-	data_points[5,4] = pixle_point[2];
-	sleep(2);
+	    /*go to where the object is, grab it and return to the ready position*/
+	    CRSinvkin(data_points[i,1], data_points[i,2], 1);
+	    sleep(4);
+	    servo_close(50);
+	    sleep(4);
+	    rob_move_abs(0,90,0,0,0);
+	};
+	data_points;
 	
-
-	/*give the arm the object and make it take the object to an x,y position for a photo shoot*/	
-	CRSinvkin(data_points[3,1], data_points[3,2], 1);
-	sleep(5);
-	servo_close(50);
-	sleep(5);
-	/*delivers the object to the x,y position given*/
-	CRSinvkin(data_points[4,1], data_points[4,2], 1);
-	sleep(5);
-	servo_open(50);
-	sleep(5);
-	CRSinvkin(0,15.5,6);
-	sleep(5);
-	img2 = proj_grabImage(cam);
-	/*use base_img and ref_img to calculate a u,v using ass1*/
-	pixle_point = proj_getCenter(base_img,img2);
-	/*add this pixle point to the data_points matrix*/
-	data_points[6,3] = pixle_point[1];
-	data_points[6,4] = pixle_point[2];
-	sleep(2);
 };
 
 /* takes four values u,v,X,Y and returns the matrix AAi  */
