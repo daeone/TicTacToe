@@ -20,7 +20,7 @@ function startGame()
     while(checkWinner(board) != -1)
     {
         if(turn == 1)
-	{
+	    {
             if(clicked)
             {
                 img = proj_grabImage();
@@ -30,13 +30,13 @@ function startGame()
                 printBoard(board);
                 turn = 2;       
             }; 
-	}
+	    }
         else
         {
             board = play(board);
-	    background = proj_grabImage();
+	        background = proj_grabImage();
             printBoard(board);
-	    clicked = setButton("Play!"); 
+	        clicked = setButton("Play!"); 
             turn = 1; 
         };
     };    
@@ -47,21 +47,36 @@ function startGame()
     else if(winner == 2) {printf("Human, You won!\n");};
 };
 
-
-function play(board)
+/* gridPosMat is the absolution position that robot will go to to place the tile on the grid */
+function play(board,gridPosMat)
 {
-    for (i=0; i<board->vsize; i++) 
-    { 
-        for (j=0; j<board->hsize; j++)
-        {
-            if (board[i][j] == -1){board[i][j] = 1;}; 
-        };    
-    }; 
-
+    i = to_int(random()*10); 
+    for(i; board[i] != -1; i = to_int(random()*10));
+    
+    
     /* Move the robot should be added */
+    placeIt(gridPosMat[i,1],gridPosMat[i,2]);
+    
     printf("Your turn...\n");
     board; 
 };
+
+/* gridPos is the absolute position of the grid 1 to 9 */
+/* It should have x and y absolute value of that grid */
+function placeIt(gridPos)
+{
+    /* go to the base position to grab the piece */
+    CRSinvkin (-15, 0, 1);
+    sleep(5);
+    servo_close(5);
+    CRSinvkin(gridPos[1],gridPos[2],1);
+    sleep(5);
+    servo_open(50);
+    sleep(3);
+    rob_move_abs(0,90,0,0,0);
+}
+
+
 
 
 function initialize(board) 
