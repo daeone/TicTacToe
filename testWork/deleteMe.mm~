@@ -1,35 +1,3 @@
-board = mk_imat(1..3, 1..3);
-/*--Break--*/
-printf("Initializing the game...\n");
-/*--Break--*/
-board = initialize(board); /*filled with -1*/
-/*--Break--*/
-/* Set Absolute position X and Y of the board */ 
-xm = mk_fmat(1..3,1..3,[[12.5,15.5,18.5],[12.5,15.5,18.5],[12.5,15.5,18.5]]); 
-ym = mk_fmat(1..3,1..3,[[3,3,3],[0,0,0],[-3,-3,-3]]);
-/*--Break--*/
-printf("Press Start if you're ready to play...\n");
-clicked = setButton("Start");
-while(!clicked){}; /*if button not clicked game wont proceed*/
-
-printf("Game starts...\n");
-printf("Let's decide who should go first... pick head(1) or tail(0)!\n");
-winner = coinToss(0);
-turn = winner;
-/*--Break--*/
-function initialize(board) 
-{ 
-    /* Initially the board is empty */ 
-    for (i=0; i<board->vsize; i++) 
-    { 
-        for (j=0; j<board->hsize; j++)
-        {
-            board[i][j] = -1; 
-        };    
-    }; 
-    board; 
-};
-
 /*A function that suggests the optimal move to win*/
 /*At the beginning make a random move and optimize next moves*/
 /*_1_|_2_|_3_*/
@@ -38,10 +6,10 @@ function initialize(board)
 /*board = [1,2,3,4,5,6,7,8,9];*/
 /*a possible stat is [1,1,-1,-1,2,-1,-1,-1,2]*/
 
-function optimalMove(board){
+function optimalMove(board, player){
 /*take the current state of the board and determine positions that can not lead to a win*/
 
-board = mk_ivec(1..9,[1,1,-1,-1,2,-1,-1,-1,2]);
+/*board = mk_ivec(1..9,[1,1,-1,-1,2,-1,-1,-1,2]);*/
 /*--Break--*/
 allwins = mk_imat(1..8,1..3,[
 [1,2,3],
@@ -58,14 +26,74 @@ allT = allwins^T;
 /*--Break--*/
 tag = mk_ivec(1..8,[1,2,3,4,5,6,7,8]);
 /*--Break--*/
-for(i=1;i<=8;i++){
-    prt(allT[1..3,i]);
-};
-
+wins = mk_ivec(1);
+/*loop through all winning moves and check if the board has such a configuration*/
+    for(j=1;j<=8;j++){
+        v = allT[1..3,j];        
+        a = to_int(v[1]);
+        b = to_int(v[2]);
+        c = to_int(v[3]);
+        
+        if(board[a] == player && board[b]==player){            
+            if(board[c] == -1){
+                prt(v);      
+                printf("|| %d Is winning move\n",c);
+                wins = push(wins,c);
+            };            
+        } else if(board[b] == player && board[c]==player){
+            if(board[a] == -1){
+                prt(v);    
+                printf("|| %d Is winning move\n",a);
+                wins = push(wins,a);
+            };
+        } else if(board[a] == player && board[c]==player){
+           if(board[b] == -1){
+                prt(v);    
+                printf("|| %d Is winning move\n",b);
+                wins = push(wins,b);
+           };
+        };
+    };
+    wins;
+/*--Break--*/
 };
 
 function prt(vec){
     for(i=1;i<=vec->vsize;i++){
-        printf("%d ",vec[i]);
+        printf("->%d ",vec[i]);
     };
+};
+
+/*it creates a dynamic vector, whenever a new element is created, it increases the vector size to accomodate the new value*/
+function push(ivec, _val){
+    if(ivec->vsize == 1 && ivec[1] == 0){
+        ivec[1] = _val;
+        new_ivec = ivec;
+    } else {
+        c = ivec->vsize;
+        new_ivec = mk_ivec(1..c+1);
+        new_ivec[1..c] = ivec[1..c];
+        new_ivec[c+1] = _val;        
+    };    
+    new_ivec;
+};
+
+/*function determines the next move of the robot*/
+function nextMove(board,player){
+    gonext = 0;
+    m = optimalMove(board, player);
+/*--Break--*/
+    if(m[1] != 0){
+        if(m->vsize <= 1){
+            gonext = m[1];    
+        } else {
+            select = to_int(random()*m->vsize);
+            gonext= m[select];
+        };
+    } else {
+        ii = to_int(random()*10); 
+        for(ii; board[ii] != -1; ii = to_int(random()*10));
+        gonext = ii;
+    };   
+    gonext;
 };

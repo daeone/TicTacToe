@@ -279,3 +279,14 @@ pinv = mk_fmat(1..3,1..3,[
 12.46, -3.06, 
 15.34, -2.71, 
 18.50, -3.16,
+
+if(board[a] == 1 && board[b]==1){
+            prt(v);        
+            printf("|| %d Is winning move",c);
+        } else if(board[b] == 1 && board[c]==1){
+            prt(v);        
+            printf("|| %d Is winning move",a);
+        } else if(board[a] == 1 && board[c]==1){
+            prt(v);        
+            printf("|| %d Is winning move",b);
+        };

@@ -1,3 +1,10 @@
+/*=========================================================================*/
+/*=========================================================================*/
+/*=========================================================================*/
+/*=========================================================================*/
+/*=========================================================================*/
+/*=========================================================================*/
+
 /*A function that suggests the optimal move to win*/
 /*At the beginning make a random move and optimize next moves*/
 /*_1_|_2_|_3_*/
@@ -24,9 +31,7 @@ allwins = mk_imat(1..8,1..3,[
 /*--Break--*/
 allT = allwins^T;
 /*--Break--*/
-/*tag = mk_ivec(1..8,[1,2,3,4,5,6,7,8]);*/
-/*--Break--*/
-
+wins = mk_ivec(1);
 /*loop through all winning moves and check if the board has such a configuration*/
     for(j=1;j<=8;j++){
         v = allT[1..3,j];        
@@ -34,22 +39,75 @@ allT = allwins^T;
         b = to_int(v[2]);
         c = to_int(v[3]);
         
-        if(board[a] == player && board[b]==player){
-            prt(v);        
-            printf("|| %d Is winning move",c);
+        if(board[a] == player && board[b]==player){            
+            if(board[c] == -1){
+                prt(v);      
+                printf("|| %d Is winning move\n",c);
+                wins = push(wins,c);
+            };            
         } else if(board[b] == player && board[c]==player){
-            prt(v);        
-            printf("|| %d Is winning move",a);
+            if(board[a] == -1){
+                prt(v);    
+                printf("|| %d Is winning move\n",a);
+                wins = push(wins,a);
+            };
         } else if(board[a] == player && board[c]==player){
-            prt(v);        
-            printf("|| %d Is winning move",b);
+           if(board[b] == -1){
+                prt(v);    
+                printf("|| %d Is winning move\n",b);
+                wins = push(wins,b);
+           };
         };
     };
+    wins;
 /*--Break--*/
 };
-
+/*=========================================================================*/
+/*=========================================================================*/
 function prt(vec){
     for(i=1;i<=vec->vsize;i++){
-        printf("%d ",vec[i]);
+        printf("->%d ",vec[i]);
     };
 };
+/*=========================================================================*/
+/*=========================================================================*/
+/*it creates a dynamic vector, whenever a new element is created, it increases the vector size to accomodate the new value*/
+function push(ivec, _val){
+    if(ivec->vsize == 1 && ivec[1] == 0){
+        ivec[1] = _val;
+        new_ivec = ivec;
+    } else {
+        c = ivec->vsize;
+        new_ivec = mk_ivec(1..c+1);
+        new_ivec[1..c] = ivec[1..c];
+        new_ivec[c+1] = _val;        
+    };    
+    new_ivec;
+};
+/*=========================================================================*/
+/*=========================================================================*/
+/*function determines the next move of the robot*/
+function nextMove(board,player){
+    gonext = 0;
+    m = optimalMove(board, player);
+/*--Break--*/
+    if(m[1] != 0){
+        if(m->vsize <= 1){
+            gonext = m[1];    
+        } else {
+            select = 1+to_int(random()*(-1+m->vsize));
+            gonext= m[select];
+        };
+    } else {
+        i = 1+to_int(random()*8); 
+        for(i; board[i] != -1; i = 1+to_int(random()*8));
+        gonext = i;
+    };   
+    gonext;
+};
+/*=========================================================================*/
+/*=========================================================================*/
+/*=========================================================================*/
+/*=========================================================================*/
+/*=========================================================================*/
+/*=========================================================================*/
