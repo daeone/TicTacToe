@@ -109,7 +109,7 @@ function get_base_img(cam)
 
 
 /*it generates the data_points matrix 6x4 to get the PPinv*/
-function generate_imgcoords(cam)
+function calibrateCam(cam)
 {
 	
 	/*To generate the U,V coordinates*/
@@ -120,69 +120,117 @@ function generate_imgcoords(cam)
 	/*- save the U,V coordinates in the matrix ( write them down for data safety)*/
 
 	/* this matrix contains 6 data points [X,Y,u,v]*/
-	data_points = mk_fmat(1..6, 1..4);
+	data_points1 = mk_fmat(1..6, 1..4);
+	data_points2 = mk_fmat(1..6, 1..4);	
+	data_points3 = mk_fmat(1..6, 1..4);
 	
-	/*input the X,Y values in the data_points matrix*/
-	data_points[1,1] = 11.0;
-	data_points[1,2] = 4.5;
+	/*input the X,Y values in the first data_points matrix*/
+	data_points1[1,1] = 11.0;
+	data_points1[1,2] = 4.5;
 	
-	data_points[2,1] = 20;
-	data_points[2,2] = 4.5;
+	data_points1[2,1] = 20;
+	data_points1[2,2] = 4.5;
 	
-	data_points[3,1] = 20;
-	data_points[3,2] = -4.5;
+	data_points1[3,1] = 20;
+	data_points1[3,2] = -4.5;
 	
-	data_points[4,1] = 11;
-	data_points[4,2] = -4.5;
+	data_points1[4,1] = 11;
+	data_points1[4,2] = -4.5;
 	
-	data_points[5,1] = 15.5;
-	data_points[5,2] = 0;
+	data_points1[5,1] = 15.5;
+	data_points1[5,2] = 0;
 	
-	data_points[6,1] = 15;
-	data_points[6,2] = 4.5;
+	data_points1[6,1] = 15.5;
+	data_points1[6,2] = 4.5;
+
+	/*input the X,Y values in the second data_points matrix*/
+	data_points2[1,1] = 12.5;
+	data_points2[1,2] = 3;
+	
+	data_points2[2,1] = 15.5;
+	data_points2[2,2] = 3;
+	
+	data_points2[3,1] = 18.5;
+	data_points2[3,2] = 3;
+	
+	data_points2[4,1] = 20;
+	data_points2[4,2] = 0;
+	
+	data_points2[5,1] = 15.5;
+	data_points2[5,2] = -3;
+	
+	data_points2[6,1] = 12.5;
+	data_points2[6,2] = 0;
+	
+	/*input the X,Y values in the second data_points matrix*/
+	data_points3[1,1] = 11.0;
+	data_points3[1,2] = 0;
+	
+	data_points3[2,1] = 14;
+	data_points3[2,2] = 1.5;
+	
+	data_points3[3,1] = 18.5;
+	data_points3[3,2] = 0;
+	
+	data_points3[4,1] = 18.5;
+	data_points3[4,2] = -3;
+	
+	data_points3[5,1] = 12.5;
+	data_points3[5,2] = -3;
+	
+	data_points3[6,1] = 15.5;
+	data_points3[6,2] = -4.5;
+	
+	all_data = mk_fmat(1..18,1..4);
+	all_data[1..6,1..4] = data_points1;
+	all_data[7..12,1..4] = data_points2;
+	all_data[13..18,1..4] = data_points3;	
 	
 	/*generate the u,v values*/
 	/*take the base_img*/	
 	
-	/*rob_move_abs(0,90,0,0,0);*/
-	sleep(4);
+	rob_move_abs(0,90,0,0,0);
+	sleep(10);
 	base_img = proj_grabImage(cam);
 	
 	/*go to the base position and grab the object*/
-	CRSinvkin (-15, 0, 1);
+	CRSinvkin (0, -15, 0.5);
 	sleep(4);
 	servo_close(50);
 	sleep(4);
-	servo_ready();
+	rob_move_abs(0,90,0,0,0);
 	sleep(4);
 	
-	for(i=1; i<=data_points->vsize;i++)
-	{
-	 
+	for(i=1; i<=6;i++)
+	{	 
 	    /*delivers the object to the x,y position given*/
-	    CRSinvkin(data_points[i,1], data_points[i,2], 1);
+	    CRSinvkin(all_data[i,1], all_data[i,2], all_data[i,1]/5-3.03);
 	    sleep(4);
 	    servo_open(50);
 	    sleep(4);
 	    rob_move_abs(0,90,0,0,0);
-	    sleep(4);
+	    sleep(8);
 	    img2 = proj_grabImage(cam);
 	    
 	    /*use base_img and ref_img to calculate a u,v using ass1*/
 	    pixle_point = proj_getCenter(base_img,img2);
 
 	    /*add this pixle point to the data_points matrix*/
-	    data_points[i,3] = pixle_point[1];
-	    data_points[i,4] = pixle_point[2];
+	    all_data[i,3] = pixle_point[1];
+	    all_data[i,4] = pixle_point[2];
 
 	    /*go to where the object is, grab it and return to the ready position*/
-	    CRSinvkin(data_points[i,1], data_points[i,2], 1);
+	    CRSinvkin(all_data[i,1], all_data[i,2], all_data[i,1]/5-3.03);
 	    sleep(4);
 	    servo_close(50);
 	    sleep(4);
 	    rob_move_abs(0,90,0,0,0);
 	};
-	data_points;
+	all_data;
+	
+	pinv1 = cameraMat(all_data[1..6,1..4]);
+	pinv1;
+	
 	
 };
 
@@ -244,7 +292,7 @@ function findWorldPosition(x,y,PP)
 	ivec = mk_fvec(1..3, [x,y,1]);
 	pvec = PP * ivec;
 	pvec = normalizeVec(pvec);
-	printf("X: %f\tY:%f\tZ:%f\n",pvec[1],pvec[2],pvec[3]);
+	pvec;
 };
 
 
@@ -342,8 +390,8 @@ function inner_sqrtMat(mat){
 };
 
 function inner_prtMat(mat){
-    for(i=1;i<=3;i++){
-        for(j=1;j<=3;j++){
+    for(i=1;i<=mat->vsize;i++){
+        for(j=1;j<=mat->hsize;j++){
             printf("%.2f ",mat[i,j]);
         };
         printf("\n");
@@ -378,6 +426,7 @@ function proj_minDistIndex(pt, G)
         c[i] = sqrt(a+b);
     };
     gridPosition = minind_fvec(c);
+    gridPosition;
 };
 
 /*--------------------------------------------------------------------------------------*/
@@ -448,8 +497,7 @@ if(xory = "Y"){
 function CRSinvkin(x,y,z)
 	"Move CRS PLUS robot arm to the position denoted by x, y, z	"
 {
-	/*Ensure that the arm is in a default state*/
-	rob_ready();
+
 	
 	/*Most of these values are estimates from trial and error*/
 	L1 = 11;
@@ -487,6 +535,8 @@ function CRSinvkin(x,y,z)
 	wrist = (f_Th2 - f_Th3) + 90;
 	
 	/*Move arm to specefied location and activate the end effactor*/
+	rob_move_abs(f_Th1, 90, 90, 0, 0); 
+	sleep(3);
 	rob_move_abs(f_Th1, f_Th2, f_Th3, wrist, 0); 
 };
 
