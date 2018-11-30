@@ -125,22 +125,22 @@ function calibrateCam(cam)
 	data_points3 = mk_fmat(1..6, 1..4);
 	
 	/*input the X,Y values in the first data_points matrix*/
-	data_points1[1,1] = 11.0;
+	data_points1[1,1] = 8.0;
 	data_points1[1,2] = 4.5;
 	
-	data_points1[2,1] = 20;
+	data_points1[2,1] = 17.0;
 	data_points1[2,2] = 4.5;
 	
-	data_points1[3,1] = 20;
+	data_points1[3,1] = 17.0;
 	data_points1[3,2] = -4.5;
 	
-	data_points1[4,1] = 11;
+	data_points1[4,1] = 8.0;
 	data_points1[4,2] = -4.5;
 	
-	data_points1[5,1] = 15.5;
+	data_points1[5,1] = 12.5;
 	data_points1[5,2] = 0;
 	
-	data_points1[6,1] = 15.5;
+	data_points1[6,1] = 12.5;
 	data_points1[6,2] = 4.5;
 
 	/*input the X,Y values in the second data_points matrix*/
@@ -194,7 +194,7 @@ function calibrateCam(cam)
 	base_img = proj_grabImage(cam);
 	
 	/*go to the base position and grab the object*/
-	CRSinvkin (0, -15, 0.5);
+	CRSinvkin (0, -15, 1);
 	sleep(4);
 	servo_close(50);
 	sleep(4);
@@ -204,7 +204,7 @@ function calibrateCam(cam)
 	for(i=1; i<=6;i++)
 	{	 
 	    /*delivers the object to the x,y position given*/
-	    CRSinvkin(all_data[i,1], all_data[i,2], all_data[i,1]/5-3.03);
+	    CRSinvkin(all_data[i,1], all_data[i,2], 1);
 	    sleep(4);
 	    servo_open(50);
 	    sleep(4);
@@ -220,7 +220,7 @@ function calibrateCam(cam)
 	    all_data[i,4] = pixle_point[2];
 
 	    /*go to where the object is, grab it and return to the ready position*/
-	    CRSinvkin(all_data[i,1], all_data[i,2], all_data[i,1]/5-3.03);
+	    CRSinvkin(all_data[i,1], all_data[i,2], 1);
 	    sleep(4);
 	    servo_close(50);
 	    sleep(4);
@@ -304,24 +304,6 @@ function proj_prtList(list){
    };
 };
 
-/*prints an image variable to a file*/
-function proj_writeImage(img,name){
-	ppm = ".ppm";
-	/*location = "/eecs/home/hydramin/Documents/4421/Project//testWork/exper/";*/
-	location = "/eecs/home/hydramin/Documents/4421/Project/TicTacToe/testWork/exper/";
-	file = str_concat(location,name,ppm);
-	write_img(img,file);
-};
-
-/*Reads an image from location provided*/
-/*read_img("absolute path");*/
-
-/*gets the robot out of the way of the camera, vertically upward*/
-function proj_readyPos(){
-    rob_move_abs(0,90,0,0,0);
-    servo_open(30);    
-};
-
 /*given 2 3x3 matrices for the center of gravities, print them merged*/
 function proj_prtCenters(xm,ym){
     for(i=1;i<=3;i++){
@@ -332,21 +314,6 @@ function proj_prtCenters(xm,ym){
     };
 };
 
-/*input the refX,refY matrices and a point, calculate the distance from each point*/
-/*this calculates the pixle distance*/
-function proj_getDistance(xm,ym,pt){
-    
-    /*dx is refX - ptx*/
-    dx = xm - inner_fillMat(pt[1]);
-    dy = ym - inner_fillMat(pt[2]);
-    dxsq = inner_squareMat(dx);
-    dysq = inner_squareMat(dy);
-    dxysum = dxsq + dysq;
-    /*dxyfinal contains distance of the point pt from each of the reference center of gravities*/
-    dxyfinal = inner_sqrtMat(dxysum);
-    inner_prtMat(dxyfinal);
-    dxyfinal;
-};
 
 /*given a distance matrix 3x3, outputs the entry index as vector (r,c) with the min value*/
 function proj_getMinIndex(mat){
@@ -364,30 +331,6 @@ function proj_getMinIndex(mat){
     index;
 };
 
-
-/*square each values of a matrix*/
-function inner_squareMat(mat){
-    mat1 = mk_fmat(1..3,1..3);
-    for(i = 1;i<=3;i++){
-        for(j = 1;j<=3;j++){
-           mat1[i,j] = mat[i,j]^2;
-        };
-    };            
-    /*inner_prtMat(mat1);*/
-    mat1;
-};
-
-/*square roots each entry of a 3x3 matrix*/
-function inner_sqrtMat(mat){
-    mat1 = mk_fmat(1..3,1..3);
-    for(i = 1;i<=3;i++){
-        for(j = 1;j<=3;j++){
-           mat1[i,j] = sqrt(mat[i,j]);           
-        };
-    };
-    /*inner_prtMat(mat1);*/
-    mat1;
-};
 
 function inner_prtMat(mat){
     for(i=1;i<=mat->vsize;i++){
@@ -494,54 +437,71 @@ if(xory = "Y"){
 /*returnValue;*/
 };
 
-function CRSinvkin(x,y,z)
-	"Move CRS PLUS robot arm to the position denoted by x, y, z	"
+function radtoDegree(rad)
 {
+	degree = rad * (180/PI);
 
+};
+function CRSinvkin(x,y,zz)
+{
+	l0 = 10;
+	l1 = 10.5;
+	l2 = 10;
+	l3 = 6.5;
 	
-	/*Most of these values are estimates from trial and error*/
-	L1 = 11;
-	L2 = 10;
-	L3 = 11.5;
-	L4 = 6.50;
+	X = x;
+	Y = y;	
+	z = zz + l3-l0;	
+	R = sqrt(x^2 + y^2);
+	r = x^2 + y^2 + z^2;
+	th1 = atan2(y/R, x/R);
+	
+	th3 = acos((r - l2^2 - l1^2)/(2*l2*l1));
+	
+	v1 = z^2 * l2^2 * cos(th3)^2 - l2^2 * z^2 + l2^4 * sin(th3)^2 + 2 * l2^3 * cos(th3) * l1 * sin(th3)^2 + l1^2 * l2^2 * sin(th3)^2;
+	v2 = l2^2 + 2 * l2 * cos(th3)*l1 + l1^2;
 
-	/*R is the vector from the origin to the desierd location of {4}*/
-	R = x^2 + y^2 + z^2;
+	th2v1 = atan2((2*z*l1 + 2*z*l2*cos(th3) + 2*sqrt(v1)) / (2*v2),(-z + ((l2*cos(th3) + l1)*(2*l1*z + 2*z*l2*cos(th3) + 2 *sqrt(v1)))/(2*v2))/ (l2*sin(th3)));
 	
-	/*z must be ajusted to acount for the hight of the arm from the table and the length of the end effactor*/
-	/* z is made negative because for some reason, a positive z does not work*/
-	/*may be due to the ordering of atan2*/
-	z = -(z + (-L1 + L4));
+	th2v2 = atan2((2*z*l1 + 2*z*l2*cos(th3) - 2*sqrt(v1)) / (2*v2),(-z + ((l2*cos(th3) + l1)*(2*l1*z + 2*z*l2*cos(th3) - 2 *sqrt(v1)))/(2*v2))/ (l2*sin(th3)));
 	
-	temp_D = (R - L3^2 - L2^2)/(2*L3*L2);
-	rad_Th1 = atan2(y, x);
-	rad_Th3 = atan2(sqrt(1 - temp_D^2), temp_D);
-	rad_Th2 = atan2(sqrt(x^2+y^2), z) - atan2(L2 + L3* cos(rad_Th3), L3*sin(rad_Th3));
- 	
-	f_Th1 = rad_to_deg(rad_Th1);
-	f_Th2 = rad_to_deg(rad_Th2);
-	f_Th3 = rad_to_deg(rad_Th3);
-	
-	/*if Theta2 is negative, the arm joint would have to bend up. the CRS PLUS has not been designed with this feature in mind */
-	/*In this case, Theta2 and Theta3 must be recalculated (with the second solution for Theta3)*/
-	if (f_Th2 < 0){
-		rad_Th3 = atan2(-sqrt(1-temp_D^2), temp_D);
-		rad_Th2 = atan2(sqrt(x^2+y^2), z) - atan2(L2 + L3* cos(rad_Th3), L3*sin(rad_Th3));
-		f_Th2 = rad_to_deg(rad_Th2);
-		f_Th3 = rad_to_deg(rad_Th3);
+
+	if (th2v1 < 0)
+	{
+		th2 = th2v2;	
+	}
+	else 
+	{
+		th2 = th2v1;	
 	};
 	
-	/*Wrist must always be facing straight down, similar to a claw mechine*/
-	wrist = (f_Th2 - f_Th3) + 90;
+	theta1 = radtoDegree(th1);
+	theta2 = radtoDegree(th2);
+	theta3 = radtoDegree(th3);
+	theta4 = theta2 - theta3 + 90;	
+	printf("%f %f %f %f\n", theta1, theta2,theta3, theta4);
 	
-	/*Move arm to specefied location and activate the end effactor*/
-	rob_move_abs(f_Th1, 90, 90, 0, 0); 
-	sleep(3);
-	rob_move_abs(f_Th1, f_Th2, f_Th3, wrist, 0); 
-};
+	flag = 0;
+	if(theta2 > 110)
+	{
+	printf("theta 2 ANGLE EXCEEDED: %f\nROBOT WILL NOT MOVE\n", theta2);
+	flag = 1;
+	};	
+	if(theta3 > 125)
+	{
+	printf("theta 3 ANGLE EXCEEDED: %f\nROBOT WILL NOT MOVE\n", theta3);
+	flag = 1;
+	};	
 
-function rad_to_deg(val1)
-	"Convert Radians to Degrees"
-{
-	val1 * (180 / PI);
+
+	if(flag != 1)
+	{	
+		sleep(2);
+		rob_move_abs(theta1,50,60,0,0);
+		sleep(2);	
+		rob_move_abs(theta1,theta2,theta3,theta4,0);
+		sleep(4);
+		flag = 0;	
+	};
+
 };
