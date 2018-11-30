@@ -1,19 +1,20 @@
 function startGame()
 {
-    /*board = mk_imat(1..3, 1..3);*/
     printf("Initializing the game...\n");
-    /*board = mk_fmat(1..3,1..3,[[-1,-1,-1],[-1,-1,-1],[-1,-1,-1]]);*/ /*filled with -1*/
     board = mk_ivec(1..9,[-1,-1,-1,-1,-1,-1,-1,-1,-1]);
     
     
     /* length of the x, o piece */
     length = 1.5;
 
-    /* Set Absolute position X and Y of the board */ 
-    /*xm = mk_fmat(1..3,1..3,[[12.5,15.5,18.5],[12.5,15.5,18.5],[12.5,15.5,18.5]]);*/ 
-    /*ym = mk_fmat(1..3,1..3,[[3,3,3],[0,0,0],[-3,-3,-3]]);*/
-    xm = mk_fvec(1..9,[12.5,15.5,18.5,12.5,15.5,18.5,12.5,15.5,18.5]);
+    /* Set Absolute position X and Y of the board */     
+    
+    xm = mk_fvec(1..9,[9.5,12.5,15.5,9.5,12.5,15.5,9.5,12.5,15.5]);
     ym = mk_fvec(1..9,[3,3,3,0,0,0,-3,-3,-3]);
+    
+    /*xm = mk_fvec(1..9,[12.5,15.5,18.5,12.5,15.5,18.5,12.5,15.5,18.5]);*/
+    /*ym = mk_fvec(1..9,[3,3,3,0,0,0,-3,-3,-3]);*/
+    
     refM = mk_fmat(1..9,1..2);
     refM[1..9,1] = xm;
     refM[1..9,2] = ym;
@@ -39,17 +40,14 @@ function startGame()
         }; 
         while(checkWinner(board) == -1)
         {
-            if(turn == 2)
+            if(turn == 2) /*Human player*/
             {
                 if(clicked)
                 {
-                     printf("5\n");
                     valid = 0;
                     while(valid != 1)
                     {
                         img2 = proj_grabImage(cam);
-                        /*dxy = proj_getDistance(xm,ym,proj_getCenter(background,img2));*/
-                        /*index = proj_getMinIndex(dxy);*/
                
                         /*Given pixel points, calculate the real world Position*/
                         pixel = proj_getCenter(background,img2);
@@ -61,13 +59,12 @@ function startGame()
                         if (distance > range)
                         {
                             printf("You are too off the center. Replace the marble accurately\n");
-                            clicked = setButton("Readjusted");
+                            clicked = setButton("Readjust");
                             while(clicked!=1){};
                         }
                         else{valid=1;};
                  
                     };
-                    printf("8\n");
                     /*board[index[1]][index[2]] = 2;*/ 
                     printf("You placed at %dth grid\n",index);
                     board[index] = 2;
@@ -76,21 +73,28 @@ function startGame()
                  
                 }; 
             }
-            else
+            else /*Robot player*/
             {
                 board = play(board,refM);
                 sleep(10);
                 background = proj_grabImage(cam);
                 printBoard(board);
                 turn = 2; 
-                clicked = setButton("Play!"); 
+                if(checkWinner(board) == -1){
+                    clicked = setButton("Play!");
+                }; 
             };
          };    
     
         winner = checkWinner(board);
         printf("Game is over! The winner is: ");
-        if(winner == 1) {printf("Robot, I won!\n");}
-        else if(winner == 2) {printf("Human, You won!\n");};
+        if(winner == 1) {
+            printf("Robot, I won! Next step conquer the planet, Destroy human race!\n");
+        }else if(winner == 2) {
+            printf("Human, You must have cheated, You won!\n");
+        } else if(winner == 0){
+            printf("Draw!!\n");
+        };
         
         printf("Do you want to play another game?: Click Yes or Stop\n");
         clicked = setButton("Yes");
@@ -102,7 +106,7 @@ function startGame()
 /*Input: board-model for the playing board with marks, gridPosmat-see above, */
 function play(board,gridPosMat)
 {
-    i = nextMove(board, 1);
+    i = nextMove(board, 1,2);
     
     board[i] = 1;
     
@@ -287,19 +291,29 @@ function push(ivec, _val)
 /*=========================================================================*/
 /*=========================================================================*/
 /*function determines the next move of the robot*/
-function nextMove(board,player)
-{
+/*if rob has finishing pos, it takes it*/
+/*if rob has no finishing move, checks if the opponent has finishing move, and block it*/
+/*if no finishing moves for both, it takes a random place*/
+function nextMove(board,robot,human){
     gonext = 0;
-    m = optimalMove(board, player);
+    mr = optimalMove(board, robot);/*list of optimal moves for robot*/
+    mh = optimalMove(board, human);/*list of optimal moves for human*/
 /*--Break--*/
-    if(m[1] != 0){
-        if(m->vsize <= 1){
-            gonext = m[1];    
-        } else {
-            select = 1+to_int(random()*(-1+m->vsize));
-            gonext= m[select];
+    if(mr[1] != 0){ /*if 0 robot has no winning moves*/
+        if(mr->vsize <= 1){ /*only one winning move*/
+            gonext = mr[1];    
+        } else {            /*several winning moves to choose from*/
+            select = 1+to_int(random()*(-1+mr->vsize));
+            gonext= mr[select];
         };
-    } else {
+    } else if (mh[1] != 0){ /*robot checks if human has a finishing move*/
+        if(mh->vsize <= 1){ /*only one winning move*/
+            gonext = mh[1];    
+        } else {            /*several winning moves to choose from*/
+            select = 1+to_int(random()*(-1+mh->vsize));
+            gonext= mh[select];
+        };
+    }else { 
         i = 1+to_int(random()*8); 
         for(i; board[i] != -1; i = 1+to_int(random()*8));
         gonext = i;

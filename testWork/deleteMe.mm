@@ -107,6 +107,34 @@ function nextMove(board,player){
 };
 /*=========================================================================*/
 /*=========================================================================*/
+
+function nextMoveBlock(board,robot,human){
+    gonext = 0;
+    mr = optimalMove(board, robot);/*list of optimal moves for robot*/
+    mh = optimalMove(board, human);/*list of optimal moves for human*/
+/*--Break--*/
+    if(mr[1] != 0){ /*if 0 robot has no winning moves*/
+        if(mr->vsize <= 1){ /*only one winning move*/
+            gonext = mr[1];    
+        } else {            /*several winning moves to choose from*/
+            select = 1+to_int(random()*(-1+mr->vsize));
+            gonext= mr[select];
+        };
+    } else if (mh[1] != 0){ /*robot checks if human has a finishing move*/
+        if(mh->vsize <= 1){ /*only one winning move*/
+            gonext = mh[1];    
+        } else {            /*several winning moves to choose from*/
+            select = 1+to_int(random()*(-1+mh->vsize));
+            gonext= mh[select];
+        };
+    }else { 
+        i = 1+to_int(random()*8); 
+        for(i; board[i] != -1; i = 1+to_int(random()*8));
+        gonext = i;
+    };   
+    gonext;
+};
+
 /*=========================================================================*/
 /*=========================================================================*/
 /*=========================================================================*/

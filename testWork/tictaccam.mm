@@ -205,7 +205,7 @@ function calibrateCam(cam)
 	{	 
 	    /*delivers the object to the x,y position given*/
 	    CRSinvkin(all_data[i,1], all_data[i,2], 1);
-	    sleep(4);
+	    /*sleep(4);*/
 	    servo_open(50);
 	    sleep(4);
 	    rob_move_abs(0,90,0,0,0);
@@ -221,10 +221,11 @@ function calibrateCam(cam)
 
 	    /*go to where the object is, grab it and return to the ready position*/
 	    CRSinvkin(all_data[i,1], all_data[i,2], 1);
+	    servo_open(30);
 	    sleep(4);
 	    servo_close(50);
 	    sleep(4);
-	    rob_move_abs(0,90,0,0,0);
+	    /*rob_move_abs(0,90,0,0,0);*/
 	};
 	all_data;
 	
