@@ -1,88 +1,79 @@
 function startGame()
 {
-    printf("Initializing the game...\n");
-    board = mk_ivec(1..9,[-1,-1,-1,-1,-1,-1,-1,-1,-1]);
-    
-    
+   
     /* length of the x, o piece */
     length = 1.5;
 
     /* Set Absolute position X and Y of the board */     
-    
     xm = mk_fvec(1..9,[9.5,12.5,15.5,9.5,12.5,15.5,9.5,12.5,15.5]);
     ym = mk_fvec(1..9,[3,3,3,0,0,0,-3,-3,-3]);
-    
-    /*xm = mk_fvec(1..9,[12.5,15.5,18.5,12.5,15.5,18.5,12.5,15.5,18.5]);*/
-    /*ym = mk_fvec(1..9,[3,3,3,0,0,0,-3,-3,-3]);*/
+  
     
     refM = mk_fmat(1..9,1..2);
     refM[1..9,1] = xm;
     refM[1..9,2] = ym;
     
-   
-    printf("Game starts...\n");
-    printf("Let's decide who should go first... pick head(1) or tail(0)!\n"); 
-    winner = coinToss(0); 
-    turn = winner; 
-    
     printf("Press Start if you're ready to play...\n");
     clicked = setButton("Start");
-    while(!clicked){}; /*if button not clicked game wont proceed*/
-    
-
+    while(!clicked){}; /*if button not clicked game wont proceed*/    
+	
     while(clicked)
     {
-        if(turn == 2) 
-        {
-            background = proj_grabImage(cam); 
-            setButton("Play!");
-            while(!clicked){}; /*if button not clicked game wont proceed*/
-        }; 
+		/* Initializing the board at the beginning of the game */
+		printf("Initializing the board...\n");
+		board = mk_ivec(1..9,[-1,-1,-1,-1,-1,-1,-1,-1,-1]);
+		
+		printf("Game starts...\n");
+		printf("Let's decide who should go first... pick head(1) or tail(0)!\n"); 
+		winner = coinToss(1); 
+		turn = winner; 
+		
+		/* While loop checks if the game is over. If turn is 1, robot plays and changes turn to 2. */
+		/* If turn is 2, vice versa. Whenever human finishes the move, robot determines the grid position and proceed */
         while(checkWinner(board) == -1)
         {
             if(turn == 2) /*Human player*/
             {
+				/* If the game is not over, before human plays, take a background picture for later object detection and set button */
+				background = proj_grabImage(cam);
+				clicked = setButton("Play!");
                 if(clicked)
                 {
-                    valid = 0;
+                    valid = 0;	/* valid bit to indicate the legal play */
                     while(valid != 1)
                     {
                         img2 = proj_grabImage(cam);
                
-                        /*Given pixel points, calculate the real world Position*/
+                        /* Given pixel points, calculate the real world position */
                         pixel = proj_getCenter(background,img2);
                         world = findWorldPosition(pixel[1],pixel[2],pinv);
                         index = proj_minDistIndex(world,refM);
-           
+						
+						/* Calculate the distance of the object from the center of the grid; 1.5 is a diameter of the grid */
+						/* If the O or X is placed out of the boundary of the grid, it warns user to readjust*/
                         distance = sqrt((world[1]-refM[index,1])^2+(world[2]-refM[index,2])^2);
-                        range = 1.5 - length/2;
+                        range = 1.5 - length/1.3;
                         if (distance > range)
                         {
-                            printf("You are too off the center. Replace the marble accurately\n");
+                            printf("You are too off the center. Replace the O accurately\n");
                             clicked = setButton("Readjust");
                             while(clicked!=1){};
                         }
                         else{valid=1;};
                  
                     };
-                    /*board[index[1]][index[2]] = 2;*/ 
-                    printf("You placed at %dth grid\n",index);
                     board[index] = 2;
                     printBoard(board);
                     turn = 1;  
-                 
                 }; 
             }
             else /*Robot player*/
             {
+				/* play the move and update the board stat */
                 board = play(board,refM);
-                sleep(10);
-                background = proj_grabImage(cam);
+                sleep(7);
                 printBoard(board);
                 turn = 2; 
-                if(checkWinner(board) == -1){
-                    clicked = setButton("Play!");
-                }; 
             };
          };    
     
@@ -110,7 +101,7 @@ function play(board,gridPosMat)
     
     board[i] = 1;
     
-    /* Move the robot should be added */
+    /* Move the robot arm to place X or O on the grid */
     placeIt(gridPosMat[i,1],gridPosMat[i,2]);
     
     printf("Your turn...\n");
@@ -123,12 +114,17 @@ function placeIt(gridPosx, gridPosy)
 {
     /* go to the base position to grab the piece */
     CRSinvkin (0, -15, 1);
-    sleep(5);
+    sleep(3);
     servo_close(50);
-    sleep(5);
+    sleep(3);
+    /* go to board center above the pieces  */
+    CRSinvkin(12.5,0,4);
+    sleep(3);
     CRSinvkin(gridPosx,gridPosy,1);
-    sleep(5);
+    sleep(3);
     servo_open(50);
+    sleep(3);
+    CRSinvkin(gridPosx,gridPosy,4);
     sleep(3);
     rob_move_abs(0,90,0,0,0);
 };
@@ -187,11 +183,12 @@ function setButton(message)
     clicked = 1;
 };
 
-/*Input: 0 or 1 for player ids, Output: 0 or 1 that determines who goes first*/
+/*Input: 1 or 0 for head or tail. If the side human took is the same as random coin toss, human wins. Otherwise robot wins */
 function coinToss(toss)
 {
     winner = 0; 
     coin = random();
+	/* round up coin value. 50 % chance of head and tail */
     if(coin >= 0.5) {coin = 1;}
     else {coin = 0;};
     
